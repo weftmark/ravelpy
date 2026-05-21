@@ -6,7 +6,11 @@ from ..responses import NeedlesResponse, NeedleSizesResponse, NeedleTypesRespons
 
 
 class Needles(Resource):
-    """Wraps needle list, sizes, and types endpoints."""
+    """Wraps needle list, sizes, and types endpoints.
+
+    Auth: *authenticated* — all three endpoints require a personal key or OAuth
+    2.0, including the reference endpoints ``sizes`` and ``types``.
+    """
 
     def list(self, username: str, etag: Optional[str] = None) -> ApiResult:
         """Return a user's needle records (``GET /people/{username}/needles/list.json``)."""

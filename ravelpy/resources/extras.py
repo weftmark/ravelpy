@@ -6,7 +6,10 @@ from ..responses import ColorFamiliesResponse
 
 
 class Extras(Resource):
-    """Reference data and global endpoints not scoped to a specific resource."""
+    """Reference data and global endpoints not scoped to a specific resource.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def color_families(self, etag: Optional[str] = None) -> ApiResult:
         """Return all color families (``GET /color_families.json``)."""

@@ -5,7 +5,11 @@ from .base import ApiResult, Resource
 
 
 class Photos(Resource):
-    """Wraps photo dimensions, sizes, and status endpoints."""
+    """Wraps photo dimensions, sizes, and status endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0; the read-only
+    Basic Auth key cannot call these endpoints.
+    """
 
     def dimensions(self, etag: Optional[str] = None) -> ApiResult:
         """Return available photo dimension definitions (``GET /photos/dimensions.json``)."""

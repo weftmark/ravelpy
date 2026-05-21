@@ -6,7 +6,10 @@ from ..responses import FriendActivityResponse, FriendsResponse
 
 
 class Friends(Resource):
-    """Wraps friend list and friend activity endpoints."""
+    """Wraps friend list and friend activity endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def list(self, username: str, etag: Optional[str] = None) -> ApiResult:
         """Return a user's friends (``GET /people/{username}/friends/list.json``)."""

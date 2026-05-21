@@ -6,7 +6,10 @@ from ..responses import PageResponse
 
 
 class Pages(Resource):
-    """Wraps the page show endpoint."""
+    """Wraps the page show endpoint.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def show(self, page_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single page (``GET /pages/{id}.json``)."""

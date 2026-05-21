@@ -5,7 +5,11 @@ from .base import ApiResult, Resource
 
 
 class App(Resource):
-    """Wraps application config and data endpoints."""
+    """Wraps application config and data endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0; the read-only
+    Basic Auth key cannot call these endpoints.
+    """
 
     def config(self, keys: Optional[str] = None, etag: Optional[str] = None) -> ApiResult:
         """Return app configuration values (``GET /app/config/get.json``)."""

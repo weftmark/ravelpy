@@ -6,7 +6,10 @@ from ..responses import BundleResponse, BundlesResponse
 
 
 class Bundles(Resource):
-    """Wraps bundle list and show endpoints."""
+    """Wraps bundle list and show endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def list(
         self,

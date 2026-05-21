@@ -6,7 +6,12 @@ from ..responses import MessageResponse, MessagesResponse
 
 
 class Messages(Resource):
-    """Wraps message list and show endpoints."""
+    """Wraps message list and show endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.  With OAuth,
+    also requires the ``message-write`` scope to send messages (not yet in this
+    library).
+    """
 
     def list(
         self,

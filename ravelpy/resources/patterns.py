@@ -13,7 +13,10 @@ from ..responses import (
 
 
 class Patterns(Resource):
-    """Wraps pattern show, multi-fetch, search, highlights, comments, and projects endpoints."""
+    """Wraps pattern show, multi-fetch, search, highlights, comments, and projects endpoints.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def show(self, pattern_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single pattern by ID (``GET /patterns/{id}.json``)."""

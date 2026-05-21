@@ -6,7 +6,10 @@ from ..responses import PackResponse
 
 
 class Packs(Resource):
-    """Wraps the pack show endpoint."""
+    """Wraps the pack show endpoint.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def show(self, pack_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single pack (``GET /packs/{id}.json``)."""

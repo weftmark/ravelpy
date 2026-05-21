@@ -6,7 +6,12 @@ from ..responses import ForumPostResponse, ForumPostsResponse, ForumSetsResponse
 
 
 class Forums(Resource):
-    """Wraps forum sets, topics, filtered topics, and forum post endpoints."""
+    """Wraps forum sets, topics, filtered topics, and forum post endpoints.
+
+    Auth: ``sets``, ``topics``, ``filtered_topics``, and ``post`` are marked
+    *authenticated* and require a personal key or OAuth 2.0.  ``unread_posts``
+    is not marked authenticated and works with the read-only Basic Auth key.
+    """
 
     def sets(self, etag: Optional[str] = None) -> ApiResult:
         """Return all forum sets (``GET /forums/sets.json``)."""

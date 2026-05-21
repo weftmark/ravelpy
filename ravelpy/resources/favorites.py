@@ -6,7 +6,10 @@ from ..responses import FavoriteResponse, FavoritesResponse
 
 
 class Favorites(Resource):
-    """Wraps favorites list and show endpoints."""
+    """Wraps favorites list and show endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def list(
         self,

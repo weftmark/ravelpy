@@ -6,7 +6,10 @@ from ..responses import CommentsResponse, YarnResponse, YarnsMultiResponse, Yarn
 
 
 class Yarns(Resource):
-    """Wraps yarn show, multi-fetch, search, and comment endpoints."""
+    """Wraps yarn show, multi-fetch, search, and comment endpoints.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def show(self, yarn_id: int, include: Optional[str] = None, etag: Optional[str] = None) -> ApiResult:
         """Return a single yarn by ID (``GET /yarns/{id}.json``)."""

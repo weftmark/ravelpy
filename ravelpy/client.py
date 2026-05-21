@@ -51,9 +51,46 @@ class RavelryClient:
     All resource sub-clients share a single :class:`httpx.Client` session so
     that connection pooling and authentication headers are applied uniformly.
 
+    **Credential types**
+
+    Ravelry issues three kinds of developer credentials, each with a different
+    scope.  Pass the appropriate ``username`` / ``api_key`` pair when
+    constructing this client.
+
+    The Ravelry API recognises three credential tiers.  Pass the appropriate
+    ``username`` / ``api_key`` pair when constructing this client.
+
+    *Read-only Basic Auth key*
+        The simplest credential.  The developer portal issues a
+        ``basic_auth_username`` / ``basic_auth_password`` pair.  Only endpoints
+        **not** marked *"authenticated"* in the official docs can be called with
+        this credential — roughly the public pattern/yarn catalog, shops, groups,
+        global search, and a handful of others.  Most user-centric endpoints
+        (stash, projects, queue, friends, messages, …) require a higher-privilege
+        credential.
+
+    *Personal account access* (personal key)
+        Uses ``access_key`` as the username and ``personal_key`` as the
+        password — both found on the developer portal.  The docs state this
+        grants **full access** to the associated Ravelry account with all OAuth
+        permissions automatically included; no explicit scopes are needed.  Use
+        this for personal tooling that reads or writes your own account data.
+
+    *OAuth 2.0*
+        Client-ID / client-secret flow (``https://www.ravelry.com/oauth2/auth``)
+        for apps acting on behalf of *other* Ravelry users.  Requires explicit
+        scopes: ``forum-write``, ``message-write``, ``deliveries-read``,
+        ``library-pdf``, etc.  Tokens expire after 24 hours; request ``offline``
+        to receive a refresh token.  Not wired into this client natively — supply
+        an OAuth access token as ``api_key`` and the authorising user's username
+        to use it manually.
+
+    Individual resource sub-client docstrings note which tier each endpoint
+    requires.
+
     Example::
 
-        client = RavelryClient(username="you", api_key="your-key")
+        client = RavelryClient(username="read-xxxx", api_key="your-key")
         parsed, etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
     """
 
@@ -61,8 +98,11 @@ class RavelryClient:
         """Create a client authenticated with Ravelry developer credentials.
 
         Args:
-            username: Your Ravelry username (used as the Basic Auth user).
-            api_key:  Your Ravelry API key (used as the Basic Auth password).
+            username: Ravelry username for HTTP Basic Auth.  For a read-only
+                personal key this is the ``read-xxxx`` string from the developer
+                portal; for OAuth 2.0 pass the authorizing user's username.
+            api_key:  Corresponding API key or OAuth access token used as the
+                Basic Auth password.
         """
         session = httpx.Client(auth=(username, api_key), headers={"Accept": "application/json"})
         self.app = App(session)

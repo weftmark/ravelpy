@@ -6,7 +6,13 @@ from ..responses import DeliveriesResponse
 
 
 class Deliveries(Resource):
-    """Wraps the deliveries list endpoint."""
+    """Wraps the deliveries list endpoint.
+
+    Auth: not marked *authenticated* in the docs, but requires the
+    ``deliveries-read`` OAuth scope.  A personal key grants this scope
+    automatically; an OAuth 2.0 token must explicitly request it.  The
+    read-only Basic Auth key cannot access delivery data.
+    """
 
     def list(
         self,

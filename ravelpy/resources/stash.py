@@ -6,7 +6,12 @@ from ..responses import CommentsResponse, StashListResponse, StashResponse, Unif
 
 
 class Stash(Resource):
-    """Wraps stash list, show, search, unified view, and comment endpoints."""
+    """Wraps stash list, show, search, unified view, and comment endpoints.
+
+    Auth: ``list``, ``show``, and ``unified`` are marked *authenticated* and
+    require a personal key or OAuth 2.0.  ``search`` and ``comments`` are not
+    marked authenticated and work with the read-only Basic Auth key.
+    """
 
     def list(
         self,

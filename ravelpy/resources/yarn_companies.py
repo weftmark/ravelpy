@@ -6,7 +6,10 @@ from ..responses import YarnCompaniesResponse
 
 
 class YarnCompanies(Resource):
-    """Wraps the yarn company search endpoint."""
+    """Wraps the yarn company search endpoint.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def search(
         self,

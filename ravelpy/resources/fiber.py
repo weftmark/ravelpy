@@ -6,7 +6,12 @@ from ..responses import CommentsResponse, FiberStashResponse
 
 
 class Fiber(Resource):
-    """Wraps fiber stash show and comment endpoints."""
+    """Wraps fiber stash show and comment endpoints.
+
+    Auth: ``show`` is marked *authenticated* and requires a personal key or
+    OAuth 2.0.  ``comments`` is not marked authenticated and works with the
+    read-only Basic Auth key.
+    """
 
     def show(self, username: str, fiber_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single fiber stash entry (``GET /people/{username}/fiber/{id}.json``)."""

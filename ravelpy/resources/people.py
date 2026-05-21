@@ -6,7 +6,10 @@ from ..responses import CommentsResponse, UserResponse
 
 
 class People(Resource):
-    """Wraps current-user, profile show, and profile comment endpoints."""
+    """Wraps current-user, profile show, and profile comment endpoints.
+
+    Auth: *authenticated* — all methods require a personal key or OAuth 2.0.
+    """
 
     def me(self, etag: Optional[str] = None) -> ApiResult:
         """Return the authenticated user's profile (``GET /current_user.json``)."""

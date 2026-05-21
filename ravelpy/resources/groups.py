@@ -6,7 +6,10 @@ from ..responses import GroupsResponse
 
 
 class Groups(Resource):
-    """Wraps the group search endpoint."""
+    """Wraps the group search endpoint.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def search(
         self,

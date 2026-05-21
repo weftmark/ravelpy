@@ -6,7 +6,11 @@ from ..responses import ForumPostsResponse, TopicResponse
 
 
 class Topics(Resource):
-    """Wraps topic show and topic posts endpoints."""
+    """Wraps topic show and topic posts endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.  With OAuth,
+    write operations require the ``forum-write`` scope (not yet in this library).
+    """
 
     def show(self, topic_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single topic (``GET /topics/{id}.json``)."""

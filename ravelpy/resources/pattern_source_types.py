@@ -6,7 +6,10 @@ from ..responses import PatternSourceTypesResponse
 
 
 class PatternSourceTypes(Resource):
-    """Wraps the pattern source types list endpoint."""
+    """Wraps the pattern source types list endpoint.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return all pattern source types (``GET /pattern_source_types/list.json``)."""

@@ -6,7 +6,10 @@ from ..responses import YarnAttributeGroupsResponse, YarnWeightsResponse
 
 
 class YarnAttributes(Resource):
-    """Wraps yarn attribute groups and yarn weights endpoints."""
+    """Wraps yarn attribute groups and yarn weights endpoints.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def groups(self, etag: Optional[str] = None) -> ApiResult:
         """Return all yarn attribute groups (``GET /yarn_attributes/groups.json``)."""

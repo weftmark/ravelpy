@@ -6,7 +6,13 @@ from ..responses import CommentsResponse, ProjectCraftsResponse, ProjectResponse
 
 
 class Projects(Resource):
-    """Wraps project list, show, search, comments, crafts, and statuses endpoints."""
+    """Wraps project list, show, search, comments, crafts, and statuses endpoints.
+
+    Auth: ``list``, ``show``, ``crafts``, and ``statuses`` are marked
+    *authenticated* and require a personal key or OAuth 2.0.  ``search`` and
+    ``comments`` are not marked authenticated and work with the read-only Basic
+    Auth key.
+    """
 
     def list(
         self,

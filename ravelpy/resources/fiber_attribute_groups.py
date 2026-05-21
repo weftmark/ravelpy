@@ -6,7 +6,10 @@ from ..responses import FiberAttributeGroupsResponse, FiberAttributesResponse, F
 
 
 class FiberAttributeGroups(Resource):
-    """Wraps fiber attribute groups, attributes, and categories endpoints."""
+    """Wraps fiber attribute groups, attributes, and categories endpoints.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return all fiber attribute groups (``GET /fiber_attribute_groups/list.json``)."""

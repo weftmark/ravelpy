@@ -6,7 +6,10 @@ from ..responses import ShopResponse, ShopsResponse
 
 
 class Shops(Resource):
-    """Wraps shop search and show endpoints."""
+    """Wraps shop search and show endpoints.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def search(
         self,

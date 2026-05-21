@@ -6,7 +6,10 @@ from ..responses import VolumeResponse
 
 
 class Volumes(Resource):
-    """Wraps the volume show endpoint."""
+    """Wraps the volume show endpoint.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def show(self, volume_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single volume (``GET /volumes/{id}.json``)."""

@@ -6,7 +6,10 @@ from ..responses import QueuedProjectResponse, QueueResponse
 
 
 class Queue(Resource):
-    """Wraps queue list and show endpoints."""
+    """Wraps queue list and show endpoints.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def list(
         self,

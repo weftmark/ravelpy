@@ -5,7 +5,11 @@ from .base import ApiResult, Resource
 
 
 class Designers(Resource):
-    """Wraps the designer show endpoint."""
+    """Wraps the designer show endpoint.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0; the read-only
+    Basic Auth key cannot call this endpoint.
+    """
 
     def show(
         self,

@@ -6,7 +6,11 @@ from ..responses import StoreProductsResponse, StoresResponse
 
 
 class Stores(Resource):
-    """Wraps store list, products, and purchases endpoints."""
+    """Wraps store list, products, and purchases endpoints.
+
+    Auth: none of these endpoints are marked *authenticated* in the docs;
+    all are accessible with the read-only Basic Auth key.
+    """
 
     def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return all stores (``GET /stores/list.json``)."""

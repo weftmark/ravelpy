@@ -6,7 +6,10 @@ from ..responses import LibraryResponse
 
 
 class Library(Resource):
-    """Wraps the library search endpoint."""
+    """Wraps the library search endpoint.
+
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    """
 
     def search(
         self,

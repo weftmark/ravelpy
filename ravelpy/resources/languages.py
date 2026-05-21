@@ -6,7 +6,10 @@ from ..responses import LanguagesResponse
 
 
 class Languages(Resource):
-    """Wraps the languages list endpoint."""
+    """Wraps the languages list endpoint.
+
+    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    """
 
     def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return all supported languages (``GET /languages/list.json``)."""
