@@ -8,7 +8,10 @@ from ..responses import BundleResponse, BundlesResponse
 class Bundles(Resource):
     """Wraps bundle list and show endpoints.
 
-    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    Auth: public catalog data — accessible with the read-only Basic Auth key.  Both
+    endpoints are marked *authenticated* in the official docs but return 200 or 404
+    in live testing, indicating auth is not enforced.  ``list`` returns an empty bundle
+    collection for any user when called with the read-only key.
     """
 
     def list(

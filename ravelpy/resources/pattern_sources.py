@@ -8,8 +8,9 @@ from ..responses import PatternSearchResponse, PatternSourceResponse, PatternSou
 class PatternSources(Resource):
     """Wraps pattern source show, search, and patterns-by-source endpoints.
 
-    Auth: ``show`` and ``search`` are accessible with the read-only Basic Auth key.
-    ``patterns`` is marked *authenticated* and requires a personal key or OAuth 2.0.
+    Auth: public catalog data — all three endpoints are accessible with the read-only
+    Basic Auth key.  The ``patterns`` endpoint is marked *authenticated* in the official
+    docs but live testing confirms it returns 200 with the read-only key.
     """
 
     def show(self, source_id: int, etag: Optional[str] = None) -> ApiResult:
@@ -35,6 +36,6 @@ class PatternSources(Resource):
     ) -> ApiResult:
         """Return patterns from a source (``GET /pattern_sources/{id}/patterns.json``).
 
-        Authenticated — requires a personal key or OAuth 2.0.
+        Marked *authenticated* in the official docs but accessible with the read-only key.
         """
         return self._get(f"/pattern_sources/{source_id}/patterns.json", {"page": page, "page_size": page_size}, etag=etag, model=PatternSearchResponse)

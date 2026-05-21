@@ -8,8 +8,10 @@ from ..responses import NeedlesResponse, NeedleSizesResponse, NeedleTypesRespons
 class Needles(Resource):
     """Wraps needle list, sizes, and types endpoints.
 
-    Auth: *authenticated* — all three endpoints require a personal key or OAuth
-    2.0, including the reference endpoints ``sizes`` and ``types``.
+    Auth: ``sizes`` and ``types`` are public reference data — accessible with the
+    read-only Basic Auth key (both marked *authenticated* in the official docs but
+    return 200 in live testing).  ``list`` (user-specific needle records) returns 403
+    with the read-only key and requires a personal key or OAuth 2.0.
     """
 
     def list(self, username: str, etag: Optional[str] = None) -> ApiResult:

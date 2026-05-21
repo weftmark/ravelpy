@@ -8,9 +8,10 @@ from ..responses import CommentsResponse, StashListResponse, StashResponse, Unif
 class Stash(Resource):
     """Wraps stash list, show, search, unified view, and comment endpoints.
 
-    Auth: ``list``, ``show``, and ``unified`` are marked *authenticated* and
-    require a personal key or OAuth 2.0.  ``search`` and ``comments`` are not
-    marked authenticated and work with the read-only Basic Auth key.
+    Auth: *authenticated* — all five endpoints return 403 with the read-only Basic Auth
+    key and require a personal key or OAuth 2.0.  This contradicts the official docs,
+    which mark only ``list``, ``show``, and ``unified`` as *authenticated*; live testing
+    confirms ``search`` and ``comments`` also require auth.
     """
 
     def list(

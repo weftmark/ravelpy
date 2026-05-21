@@ -8,11 +8,16 @@ from ..responses import FiberAttributeGroupsResponse, FiberAttributesResponse, F
 class FiberAttributeGroups(Resource):
     """Wraps fiber attribute groups, attributes, and categories endpoints.
 
-    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    Auth: ``attributes`` and ``categories`` are public catalog data accessible with the
+    read-only Basic Auth key.  ``list`` redirects to the Ravelry login page with the
+    read-only key — it requires a personal key or OAuth 2.0.
     """
 
     def list(self, etag: Optional[str] = None) -> ApiResult:
-        """Return all fiber attribute groups (``GET /fiber_attribute_groups/list.json``)."""
+        """Return all fiber attribute groups (``GET /fiber_attribute_groups/list.json``).
+
+        Authenticated — requires a personal key or OAuth 2.0.
+        """
         return self._get("/fiber_attribute_groups/list.json", etag=etag, model=FiberAttributeGroupsResponse)
 
     def attributes(self, etag: Optional[str] = None) -> ApiResult:

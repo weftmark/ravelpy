@@ -8,7 +8,9 @@ from ..responses import BundledItemResponse
 class BundledItems(Resource):
     """Wraps the bundled item show endpoint.
 
-    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    Auth: public catalog data — accessible with the read-only Basic Auth key.  The
+    endpoint is marked *authenticated* in the official docs but returns 200 or 404
+    in live testing, indicating auth is not enforced.
     """
 
     def show(self, bundled_item_id: int, etag: Optional[str] = None) -> ApiResult:

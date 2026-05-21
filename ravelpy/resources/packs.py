@@ -8,7 +8,9 @@ from ..responses import PackResponse
 class Packs(Resource):
     """Wraps the pack show endpoint.
 
-    Auth: *authenticated* — requires a personal key or OAuth 2.0.
+    Auth: public catalog data — accessible with the read-only Basic Auth key.  The
+    endpoint is marked *authenticated* in the official docs but returns 200 in live
+    testing, indicating auth is not enforced.
     """
 
     def show(self, pack_id: int, etag: Optional[str] = None) -> ApiResult:

@@ -8,7 +8,9 @@ from ..responses import CommentsResponse, YarnResponse, YarnsMultiResponse, Yarn
 class Yarns(Resource):
     """Wraps yarn show, multi-fetch, search, and comment endpoints.
 
-    Auth: public catalog data — any valid developer credentials (read-only key or higher).
+    Auth: ``show``, ``list``, and ``search`` are public catalog data accessible with the
+    read-only Basic Auth key.  ``comments`` returns 403 with the read-only key — it
+    requires a personal key or OAuth 2.0.
     """
 
     def show(self, yarn_id: int, include: Optional[str] = None, etag: Optional[str] = None) -> ApiResult:
@@ -49,5 +51,8 @@ class Yarns(Resource):
         sort: Optional[str] = None,
         etag: Optional[str] = None,
     ) -> ApiResult:
-        """Return comments for a yarn (``GET /yarns/{id}/comments.json``)."""
+        """Return comments for a yarn (``GET /yarns/{id}/comments.json``).
+
+        Authenticated — requires a personal key or OAuth 2.0.
+        """
         return self._get(f"/yarns/{yarn_id}/comments.json", {"page": page, "page_size": page_size, "sort": sort}, etag=etag, model=CommentsResponse)

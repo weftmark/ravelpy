@@ -8,9 +8,9 @@ from ..responses import ForumPostResponse, ForumPostsResponse, ForumSetsResponse
 class Forums(Resource):
     """Wraps forum sets, topics, filtered topics, and forum post endpoints.
 
-    Auth: ``sets``, ``topics``, ``filtered_topics``, and ``post`` are marked
-    *authenticated* and require a personal key or OAuth 2.0.  ``unread_posts``
-    is not marked authenticated and works with the read-only Basic Auth key.
+    Auth: *authenticated* — all five endpoints require a personal key or OAuth 2.0.
+    ``unread_posts`` is not marked *authenticated* in the official docs but returns
+    403 with the read-only Basic Auth key in live testing.
     """
 
     def sets(self, etag: Optional[str] = None) -> ApiResult:

@@ -8,10 +8,10 @@ from ..responses import CommentsResponse, ProjectCraftsResponse, ProjectResponse
 class Projects(Resource):
     """Wraps project list, show, search, comments, crafts, and statuses endpoints.
 
-    Auth: ``list``, ``show``, ``crafts``, and ``statuses`` are marked
-    *authenticated* and require a personal key or OAuth 2.0.  ``search`` and
-    ``comments`` are not marked authenticated and work with the read-only Basic
-    Auth key.
+    Auth: ``search``, ``list``, ``show``, ``crafts``, and ``statuses`` are accessible with
+    the read-only Basic Auth key (``list``, ``crafts``, and ``statuses`` are marked
+    *authenticated* in the official docs but return 200 in live testing).  ``comments``
+    returns 403 with the read-only key and requires a personal key or OAuth 2.0.
     """
 
     def list(
@@ -51,7 +51,10 @@ class Projects(Resource):
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
     ) -> ApiResult:
-        """Return comments on a project (``GET /projects/{username}/{id}/comments.json``)."""
+        """Return comments on a project (``GET /projects/{username}/{id}/comments.json``).
+
+        Authenticated — requires a personal key or OAuth 2.0.
+        """
         return self._get(f"/projects/{username}/{project_id}/comments.json", {"page": page, "page_size": page_size}, etag=etag, model=CommentsResponse)
 
     def crafts(self, etag: Optional[str] = None) -> ApiResult:

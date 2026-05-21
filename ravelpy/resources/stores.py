@@ -8,8 +8,9 @@ from ..responses import StoreProductsResponse, StoresResponse
 class Stores(Resource):
     """Wraps store list, products, and purchases endpoints.
 
-    Auth: none of these endpoints are marked *authenticated* in the docs;
-    all are accessible with the read-only Basic Auth key.
+    Auth: *authenticated* — all three endpoints return 403 with the read-only Basic Auth
+    key despite not being marked *authenticated* in the official docs.  A personal key
+    or OAuth 2.0 is required.
     """
 
     def list(self, etag: Optional[str] = None) -> ApiResult:

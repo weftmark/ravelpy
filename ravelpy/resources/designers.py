@@ -7,8 +7,9 @@ from .base import ApiResult, Resource
 class Designers(Resource):
     """Wraps the designer show endpoint.
 
-    Auth: *authenticated* — requires a personal key or OAuth 2.0; the read-only
-    Basic Auth key cannot call this endpoint.
+    Auth: public catalog data — accessible with the read-only Basic Auth key.  The
+    endpoint is marked *authenticated* in the official docs but returns 200 in live
+    testing, indicating auth is not enforced.
     """
 
     def show(
