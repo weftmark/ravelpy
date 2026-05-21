@@ -17,8 +17,118 @@ from fastapi import Depends, FastAPI, HTTPException, Path, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from ravelpy import RavelryAPIError, RavelryClient
+from ravelpy.responses import (
+    BundledItemResponse,
+    BundleResponse,
+    BundlesResponse,
+    ColorFamiliesResponse,
+    CommentsResponse,
+    DeliveriesResponse,
+    DraftPatternResponse,
+    DraftPatternsResponse,
+    FavoriteResponse,
+    FavoritesResponse,
+    FiberAttributeGroupsResponse,
+    FiberAttributesResponse,
+    FiberCategoriesResponse,
+    FiberStashResponse,
+    ForumPostResponse,
+    ForumPostsResponse,
+    ForumSetsResponse,
+    FriendActivityResponse,
+    FriendsResponse,
+    GroupsResponse,
+    LanguagesResponse,
+    LibraryResponse,
+    MessageResponse,
+    MessagesResponse,
+    NeedleSizesResponse,
+    NeedlesResponse,
+    NeedleTypesResponse,
+    PackResponse,
+    PageResponse,
+    PatternAttributeGroupsResponse,
+    PatternCategoriesResponse,
+    PatternHighlightsResponse,
+    PatternResponse,
+    PatternSearchResponse,
+    PatternSourceResponse,
+    PatternSourcesSearchResponse,
+    PatternSourceTypesResponse,
+    PatternsMultiResponse,
+    ProductAttachmentResponse,
+    ProductAttachmentsResponse,
+    ProductResponse,
+    ProjectCraftsResponse,
+    ProjectResponse,
+    ProjectsResponse,
+    ProjectStatusesResponse,
+    QueuedProjectResponse,
+    QueueResponse,
+    SavedSearchesResponse,
+    ShopResponse,
+    ShopsResponse,
+    StashListResponse,
+    StashResponse,
+    StoreProductsResponse,
+    StoresResponse,
+    TopicResponse,
+    TopicsResponse,
+    ForumPostsResponse,
+    UnifiedStashResponse,
+    UserResponse,
+    VolumeResponse,
+    YarnAttributeGroupsResponse,
+    YarnCompaniesResponse,
+    YarnResponse,
+    YarnSearchResponse,
+    YarnsMultiResponse,
+    YarnWeightsResponse,
+)
 
 load_dotenv()
+
+_TAGS = [
+    {"name": "App"},
+    {"name": "Bundled Items"},
+    {"name": "Bundles"},
+    {"name": "Deliveries"},
+    {"name": "Designers"},
+    {"name": "Drafts"},
+    {"name": "Extras"},
+    {"name": "Favorites"},
+    {"name": "Fiber"},
+    {"name": "Fiber Attribute Groups"},
+    {"name": "Forums"},
+    {"name": "Friends"},
+    {"name": "Groups"},
+    {"name": "Languages"},
+    {"name": "Library"},
+    {"name": "Messages"},
+    {"name": "Needles"},
+    {"name": "Pages"},
+    {"name": "Packs"},
+    {"name": "Pattern Attributes"},
+    {"name": "Pattern Categories"},
+    {"name": "Pattern Source Types"},
+    {"name": "Pattern Sources"},
+    {"name": "Patterns"},
+    {"name": "People"},
+    {"name": "Photos"},
+    {"name": "Product Attachments"},
+    {"name": "Products"},
+    {"name": "Projects"},
+    {"name": "Queue"},
+    {"name": "Saved Searches"},
+    {"name": "Shops"},
+    {"name": "Stash"},
+    {"name": "Stores"},
+    {"name": "Topics"},
+    {"name": "Volumes"},
+    {"name": "Yarn Attributes"},
+    {"name": "Yarn Companies"},
+    {"name": "Yarns"},
+]
 
 app = FastAPI(
     title="Ravelry API",
@@ -31,6 +141,7 @@ app = FastAPI(
     version="1.0.0",
     contact={"name": "Ravelry API Docs", "url": "https://www.ravelry.com/api"},
     license_info={"name": "MIT"},
+    openapi_tags=_TAGS,
 )
 
 app.add_middleware(
@@ -67,112 +178,169 @@ def _handle(fn):
 
 
 # =============================================================================
-# Reference / Lookup Data
+# Extras (reference data + global search)
 # =============================================================================
 
-ref_tag = "Reference Data"
+extras_tag = "Extras"
 
 
-@app.get("/color-families", tags=[ref_tag], summary="List color families")
+@app.get("/color-families", tags=[extras_tag], summary="List color families", response_model=ColorFamiliesResponse)
 def get_color_families(c: ClientDep):
-    return _handle(c.get_color_families)
+    return _handle(c.extras.color_families)
 
 
-@app.get("/fiber-attributes", tags=[ref_tag], summary="List fiber attributes")
-def get_fiber_attributes(c: ClientDep):
-    return _handle(c.get_fiber_attributes)
-
-
-@app.get("/fiber-categories", tags=[ref_tag], summary="List fiber categories")
-def get_fiber_categories(c: ClientDep):
-    return _handle(c.get_fiber_categories)
-
-
-@app.get("/fiber-attribute-groups", tags=[ref_tag], summary="List fiber attribute groups")
-def get_fiber_attribute_groups(c: ClientDep):
-    return _handle(c.get_fiber_attribute_groups)
-
-
-@app.get("/yarn-weights", tags=[ref_tag], summary="List yarn weights")
-def get_yarn_weights(c: ClientDep):
-    return _handle(c.get_yarn_weights)
-
-
-@app.get("/yarn-attributes", tags=[ref_tag], summary="List yarn attributes")
-def get_yarn_attributes(c: ClientDep):
-    return _handle(c.get_yarn_attributes)
-
-
-@app.get("/languages", tags=[ref_tag], summary="List available languages")
-def get_languages(c: ClientDep):
-    return _handle(c.get_languages)
-
-
-@app.get("/needles", tags=[ref_tag], summary="List needle records")
-def get_needles(c: ClientDep):
-    return _handle(c.get_needles)
-
-
-@app.get("/needles/sizes", tags=[ref_tag], summary="List needle sizes")
-def get_needle_sizes(c: ClientDep):
-    return _handle(c.get_needle_sizes)
-
-
-@app.get("/needles/types", tags=[ref_tag], summary="List needle types")
-def get_needle_types(c: ClientDep):
-    return _handle(c.get_needle_types)
-
-
-@app.get("/pattern-attributes", tags=[ref_tag], summary="List pattern attributes")
-def get_pattern_attributes(c: ClientDep):
-    return _handle(c.get_pattern_attributes)
-
-
-@app.get("/pattern-categories", tags=[ref_tag], summary="List pattern categories")
-def get_pattern_categories(c: ClientDep):
-    return _handle(c.get_pattern_categories)
-
-
-@app.get("/pattern-source-types", tags=[ref_tag], summary="List pattern source types")
-def get_pattern_source_types(c: ClientDep):
-    return _handle(c.get_pattern_source_types)
-
-
-@app.get("/project-crafts", tags=[ref_tag], summary="List valid project crafts")
-def get_project_crafts(c: ClientDep):
-    return _handle(c.get_project_crafts)
-
-
-@app.get("/project-statuses", tags=[ref_tag], summary="List valid project statuses")
-def get_project_statuses(c: ClientDep):
-    return _handle(c.get_project_statuses)
-
-
-@app.get("/photo-dimensions", tags=[ref_tag], summary="List photo thumbnail dimensions")
-def get_photo_dimensions(c: ClientDep):
-    return _handle(c.get_photo_dimensions)
-
-
-@app.get("/photo-sizes", tags=[ref_tag], summary="List available photo sizes")
-def get_photo_sizes(c: ClientDep):
-    return _handle(c.get_photo_sizes)
-
-
-# =============================================================================
-# Global Search
-# =============================================================================
-
-search_tag = "Search"
-
-
-@app.get("/search", tags=[search_tag], summary="Global search")
+@app.get("/search", tags=[extras_tag], summary="Global search")
 def global_search(
     c: ClientDep,
     query: str = Query(..., description="Search query string"),
     types: Optional[str] = Query(None, description="Comma-separated resource types (e.g. patterns,yarns)"),
     limit: Optional[int] = Query(None, description="Maximum number of results"),
 ):
-    return _handle(lambda: c.search(query=query, types=types, limit=limit))
+    return _handle(lambda: c.extras.search(query=query, types=types, limit=limit))
+
+
+# =============================================================================
+# Fiber Attribute Groups
+# =============================================================================
+
+fiber_attr_tag = "Fiber Attribute Groups"
+
+
+@app.get("/fiber-attribute-groups", tags=[fiber_attr_tag], summary="List fiber attribute groups", response_model=FiberAttributeGroupsResponse)
+def get_fiber_attribute_groups(c: ClientDep):
+    return _handle(c.fiber_attribute_groups.list)
+
+
+@app.get("/fiber-attributes", tags=[fiber_attr_tag], summary="List fiber attributes", response_model=FiberAttributesResponse)
+def get_fiber_attributes(c: ClientDep):
+    return _handle(c.fiber_attribute_groups.attributes)
+
+
+@app.get("/fiber-categories", tags=[fiber_attr_tag], summary="List fiber categories", response_model=FiberCategoriesResponse)
+def get_fiber_categories(c: ClientDep):
+    return _handle(c.fiber_attribute_groups.categories)
+
+
+# =============================================================================
+# Yarn Attributes
+# =============================================================================
+
+yarn_attr_tag = "Yarn Attributes"
+
+
+@app.get("/yarn-attributes", tags=[yarn_attr_tag], summary="List yarn attribute groups", response_model=YarnAttributeGroupsResponse)
+def get_yarn_attributes(c: ClientDep):
+    return _handle(c.yarn_attributes.groups)
+
+
+@app.get("/yarn-weights", tags=[yarn_attr_tag], summary="List yarn weights", response_model=YarnWeightsResponse)
+def get_yarn_weights(c: ClientDep):
+    return _handle(c.yarn_attributes.weights)
+
+
+# =============================================================================
+# Languages
+# =============================================================================
+
+languages_tag = "Languages"
+
+
+@app.get("/languages", tags=[languages_tag], summary="List available languages", response_model=LanguagesResponse)
+def get_languages(c: ClientDep):
+    return _handle(c.languages.list)
+
+
+# =============================================================================
+# Needles
+# =============================================================================
+
+needles_tag = "Needles"
+
+
+@app.get("/people/{username}/needles", tags=[needles_tag], summary="List a user's needle records", response_model=NeedlesResponse)
+def get_needles(c: ClientDep, username: str = Path(...)):
+    return _handle(lambda: c.needles.list(username=username))
+
+
+@app.get("/needles/sizes", tags=[needles_tag], summary="List needle sizes", response_model=NeedleSizesResponse)
+def get_needle_sizes(c: ClientDep):
+    return _handle(c.needles.sizes)
+
+
+@app.get("/needles/types", tags=[needles_tag], summary="List needle types", response_model=NeedleTypesResponse)
+def get_needle_types(c: ClientDep):
+    return _handle(c.needles.types)
+
+
+# =============================================================================
+# Pattern Attributes
+# =============================================================================
+
+pattern_attr_tag = "Pattern Attributes"
+
+
+@app.get("/pattern-attributes", tags=[pattern_attr_tag], summary="List pattern attribute groups", response_model=PatternAttributeGroupsResponse)
+def get_pattern_attributes(c: ClientDep):
+    return _handle(c.pattern_attributes.groups)
+
+
+# =============================================================================
+# Pattern Categories
+# =============================================================================
+
+pattern_cat_tag = "Pattern Categories"
+
+
+@app.get("/pattern-categories", tags=[pattern_cat_tag], summary="List pattern categories", response_model=PatternCategoriesResponse)
+def get_pattern_categories(c: ClientDep):
+    return _handle(c.pattern_categories.list)
+
+
+# =============================================================================
+# Pattern Source Types
+# =============================================================================
+
+pattern_src_type_tag = "Pattern Source Types"
+
+
+@app.get("/pattern-source-types", tags=[pattern_src_type_tag], summary="List pattern source types", response_model=PatternSourceTypesResponse)
+def get_pattern_source_types(c: ClientDep):
+    return _handle(c.pattern_source_types.list)
+
+
+# =============================================================================
+# Pattern Sources
+# =============================================================================
+
+pattern_sources_tag = "Pattern Sources"
+
+
+@app.get("/pattern-sources/search", tags=[pattern_sources_tag], summary="Search pattern sources", response_model=PatternSourcesSearchResponse)
+def search_pattern_sources(
+    c: ClientDep,
+    query: Optional[str] = Query(None),
+    page: Optional[int] = Query(None, ge=1),
+    page_size: Optional[int] = Query(None, ge=1, le=100),
+):
+    return _handle(lambda: c.pattern_sources.search(query=query, page=page, page_size=page_size))
+
+
+@app.get("/pattern-sources/{source_id}", tags=[pattern_sources_tag], summary="Get a pattern source", response_model=PatternSourceResponse)
+def get_pattern_source(
+    c: ClientDep,
+    source_id: int = Path(...),
+):
+    return _handle(lambda: c.pattern_sources.show(source_id=source_id))
+
+
+@app.get("/pattern-sources/{source_id}/patterns", tags=[pattern_sources_tag], summary="Get patterns from a source", response_model=PatternSearchResponse)
+def get_pattern_source_patterns(
+    c: ClientDep,
+    source_id: int = Path(...),
+    page: Optional[int] = Query(None, ge=1),
+    page_size: Optional[int] = Query(None, ge=1, le=100),
+):
+    return _handle(lambda: c.pattern_sources.patterns(source_id=source_id, page=page, page_size=page_size))
 
 
 # =============================================================================
@@ -182,7 +350,7 @@ def global_search(
 patterns_tag = "Patterns"
 
 
-@app.get("/patterns/search", tags=[patterns_tag], summary="Search patterns")
+@app.get("/patterns/search", tags=[patterns_tag], summary="Search patterns", response_model=PatternSearchResponse)
 def search_patterns(
     c: ClientDep,
     query: Optional[str] = Query(None),
@@ -197,30 +365,35 @@ def search_patterns(
     availability: Optional[str] = Query(None, description="e.g. free, ravelry"),
     language: Optional[str] = Query(None),
 ):
-    return _handle(lambda: c.search_patterns(
+    return _handle(lambda: c.patterns.search(
         query=query, page=page, page_size=page_size, sort=sort,
         craft=craft, weight=weight, colors=colors, fit=fit, gender=gender,
         availability=availability, language=language,
     ))
 
 
-@app.get("/patterns/multi", tags=[patterns_tag], summary="Get multiple patterns by ID")
+@app.get("/patterns/highlights", tags=[patterns_tag], summary="Get pattern highlights", response_model=PatternHighlightsResponse)
+def get_pattern_highlights(c: ClientDep):
+    return _handle(c.patterns.highlights)
+
+
+@app.get("/patterns/multi", tags=[patterns_tag], summary="Get multiple patterns by ID", response_model=PatternsMultiResponse)
 def get_patterns(
     c: ClientDep,
     ids: str = Query(..., description="Comma-separated pattern IDs"),
 ):
-    return _handle(lambda: c.get_patterns(ids=ids))
+    return _handle(lambda: c.patterns.list(ids=ids))
 
 
-@app.get("/patterns/{pattern_id}", tags=[patterns_tag], summary="Get a pattern")
+@app.get("/patterns/{pattern_id}", tags=[patterns_tag], summary="Get a pattern", response_model=PatternResponse)
 def get_pattern(
     c: ClientDep,
     pattern_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_pattern(pattern_id=pattern_id))
+    return _handle(lambda: c.patterns.show(pattern_id=pattern_id))
 
 
-@app.get("/patterns/{pattern_id}/comments", tags=[patterns_tag], summary="Get pattern comments")
+@app.get("/patterns/{pattern_id}/comments", tags=[patterns_tag], summary="Get pattern comments", response_model=CommentsResponse)
 def get_pattern_comments(
     c: ClientDep,
     pattern_id: int = Path(...),
@@ -228,53 +401,17 @@ def get_pattern_comments(
     page_size: Optional[int] = Query(None, ge=1, le=100),
     sort: Optional[str] = Query(None),
 ):
-    return _handle(lambda: c.get_pattern_comments(pattern_id=pattern_id, page=page, page_size=page_size, sort=sort))
+    return _handle(lambda: c.patterns.comments(pattern_id=pattern_id, page=page, page_size=page_size, sort=sort))
 
 
-@app.get("/patterns/{pattern_id}/highlights", tags=[patterns_tag], summary="Get pattern highlights")
-def get_pattern_highlights(
-    c: ClientDep,
-    pattern_id: int = Path(...),
-):
-    return _handle(lambda: c.get_pattern_highlights(pattern_id=pattern_id))
-
-
-@app.get("/patterns/{pattern_id}/projects", tags=[patterns_tag], summary="Get projects linked to a pattern")
+@app.get("/patterns/{pattern_id}/projects", tags=[patterns_tag], summary="Get projects linked to a pattern", response_model=ProjectsResponse)
 def get_pattern_projects(
     c: ClientDep,
     pattern_id: int = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_pattern_projects(pattern_id=pattern_id, page=page, page_size=page_size))
-
-
-@app.get("/pattern-sources/search", tags=[patterns_tag], summary="Search pattern sources")
-def search_pattern_sources(
-    c: ClientDep,
-    query: Optional[str] = Query(None),
-    page: Optional[int] = Query(None, ge=1),
-    page_size: Optional[int] = Query(None, ge=1, le=100),
-):
-    return _handle(lambda: c.search_pattern_sources(query=query, page=page, page_size=page_size))
-
-
-@app.get("/pattern-sources/{source_id}", tags=[patterns_tag], summary="Get a pattern source")
-def get_pattern_source(
-    c: ClientDep,
-    source_id: int = Path(...),
-):
-    return _handle(lambda: c.get_pattern_source(source_id=source_id))
-
-
-@app.get("/pattern-sources/{source_id}/patterns", tags=[patterns_tag], summary="Get patterns from a source")
-def get_pattern_source_patterns(
-    c: ClientDep,
-    source_id: int = Path(...),
-    page: Optional[int] = Query(None, ge=1),
-    page_size: Optional[int] = Query(None, ge=1, le=100),
-):
-    return _handle(lambda: c.get_pattern_source_patterns(source_id=source_id, page=page, page_size=page_size))
+    return _handle(lambda: c.patterns.projects(pattern_id=pattern_id, page=page, page_size=page_size))
 
 
 # =============================================================================
@@ -284,7 +421,7 @@ def get_pattern_source_patterns(
 yarns_tag = "Yarns"
 
 
-@app.get("/yarns/search", tags=[yarns_tag], summary="Search yarns")
+@app.get("/yarns/search", tags=[yarns_tag], summary="Search yarns", response_model=YarnSearchResponse)
 def search_yarns(
     c: ClientDep,
     query: Optional[str] = Query(None),
@@ -298,7 +435,7 @@ def search_yarns(
     discontinued: Optional[bool] = Query(None),
     personal_attributes: Optional[str] = Query(None),
 ):
-    return _handle(lambda: c.search_yarns(
+    return _handle(lambda: c.yarns.search(
         query=query, page=page, page_size=page_size, sort=sort, weight=weight,
         fiber_min_weight_pct=fiber_min_weight_pct, color_family_id=color_family_id,
         fiber_category_id=fiber_category_id, discontinued=discontinued,
@@ -306,23 +443,23 @@ def search_yarns(
     ))
 
 
-@app.get("/yarns/multi", tags=[yarns_tag], summary="Get multiple yarns by ID")
+@app.get("/yarns/multi", tags=[yarns_tag], summary="Get multiple yarns by ID", response_model=YarnsMultiResponse)
 def get_yarns(
     c: ClientDep,
     ids: str = Query(..., description="Comma-separated yarn IDs"),
 ):
-    return _handle(lambda: c.get_yarns(ids=ids))
+    return _handle(lambda: c.yarns.list(ids=ids))
 
 
-@app.get("/yarns/{yarn_id}", tags=[yarns_tag], summary="Get a yarn")
+@app.get("/yarns/{yarn_id}", tags=[yarns_tag], summary="Get a yarn", response_model=YarnResponse)
 def get_yarn(
     c: ClientDep,
     yarn_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_yarn(yarn_id=yarn_id))
+    return _handle(lambda: c.yarns.show(yarn_id=yarn_id))
 
 
-@app.get("/yarns/{yarn_id}/comments", tags=[yarns_tag], summary="Get yarn comments")
+@app.get("/yarns/{yarn_id}/comments", tags=[yarns_tag], summary="Get yarn comments", response_model=CommentsResponse)
 def get_yarn_comments(
     c: ClientDep,
     yarn_id: int = Path(...),
@@ -330,74 +467,99 @@ def get_yarn_comments(
     page_size: Optional[int] = Query(None, ge=1, le=100),
     sort: Optional[str] = Query(None),
 ):
-    return _handle(lambda: c.get_yarn_comments(yarn_id=yarn_id, page=page, page_size=page_size, sort=sort))
+    return _handle(lambda: c.yarns.comments(yarn_id=yarn_id, page=page, page_size=page_size, sort=sort))
 
 
-@app.get("/yarn-companies/search", tags=[yarns_tag], summary="Search yarn companies")
+# =============================================================================
+# Yarn Companies
+# =============================================================================
+
+yarn_co_tag = "Yarn Companies"
+
+
+@app.get("/yarn-companies/search", tags=[yarn_co_tag], summary="Search yarn companies", response_model=YarnCompaniesResponse)
 def search_yarn_companies(
     c: ClientDep,
     query: Optional[str] = Query(None),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.search_yarn_companies(query=query, page=page, page_size=page_size))
+    return _handle(lambda: c.yarn_companies.search(query=query, page=page, page_size=page_size))
 
 
 # =============================================================================
-# People / Users
+# People
 # =============================================================================
 
 people_tag = "People"
 
 
-@app.get("/current-user", tags=[people_tag], summary="Get authenticated user profile")
+@app.get("/current-user", tags=[people_tag], summary="Get authenticated user profile", response_model=UserResponse)
 def get_current_user(c: ClientDep):
-    return _handle(c.get_current_user)
+    return _handle(c.people.me)
 
 
-@app.get("/people/{username}", tags=[people_tag], summary="Get a user's profile")
+@app.get("/people/{username}", tags=[people_tag], summary="Get a user's profile", response_model=UserResponse)
 def get_person(
     c: ClientDep,
     username: str = Path(...),
 ):
-    return _handle(lambda: c.get_person(username=username))
+    return _handle(lambda: c.people.show(username=username))
 
 
-@app.get("/people/{username}/comments", tags=[people_tag], summary="List comments by a user")
+@app.get("/people/{username}/comments", tags=[people_tag], summary="List comments by a user", response_model=CommentsResponse)
 def get_person_comments(
     c: ClientDep,
     username: str = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_person_comments(username=username, page=page, page_size=page_size))
+    return _handle(lambda: c.people.comments(username=username, page=page, page_size=page_size))
 
 
-@app.get("/people/{username}/saved-searches", tags=[people_tag], summary="List a user's saved searches")
-def get_saved_searches(
-    c: ClientDep,
-    username: str = Path(...),
-):
-    return _handle(lambda: c.get_saved_searches(username=username))
+# =============================================================================
+# Friends
+# =============================================================================
+
+friends_tag = "Friends"
 
 
-@app.get("/people/{username}/friends", tags=[people_tag], summary="List a user's friends")
+@app.get("/people/{username}/friends", tags=[friends_tag], summary="List a user's friends", response_model=FriendsResponse)
 def get_friends(
     c: ClientDep,
     username: str = Path(...),
 ):
-    return _handle(lambda: c.get_friends(username=username))
+    return _handle(lambda: c.friends.list(username=username))
 
 
-@app.get("/people/{username}/friends/activity", tags=[people_tag], summary="Get friends' recent activity")
+@app.get("/people/{username}/friends/activity", tags=[friends_tag], summary="Get friends' recent activity", response_model=FriendActivityResponse)
 def get_friends_activity(
     c: ClientDep,
     username: str = Path(...),
 ):
-    return _handle(lambda: c.get_friends_activity(username=username))
+    return _handle(lambda: c.friends.activity(username=username))
 
 
-@app.get("/people/{username}/library/search", tags=[people_tag], summary="Search a user's library")
+# =============================================================================
+# Saved Searches
+# =============================================================================
+
+saved_searches_tag = "Saved Searches"
+
+
+@app.get("/saved-searches", tags=[saved_searches_tag], summary="List saved searches for the authenticated user", response_model=SavedSearchesResponse)
+def get_saved_searches(c: ClientDep):
+    return _handle(c.saved_searches.list)
+
+
+# =============================================================================
+# Library
+# =============================================================================
+
+library_tag = "Library"
+
+
+@app.get("/people/{username}/library/search", tags=[library_tag], summary="Search a user's library", response_model=LibraryResponse)
 def search_library(
     c: ClientDep,
     username: str = Path(...),
@@ -405,7 +567,7 @@ def search_library(
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.search_library(username=username, query=query, page=page, page_size=page_size))
+    return _handle(lambda: c.library.search(username=username, query=query, page=page, page_size=page_size))
 
 
 # =============================================================================
@@ -415,7 +577,7 @@ def search_library(
 projects_tag = "Projects"
 
 
-@app.get("/projects/search", tags=[projects_tag], summary="Search the project database")
+@app.get("/projects/search", tags=[projects_tag], summary="Search the project database", response_model=ProjectsResponse)
 def search_projects(
     c: ClientDep,
     query: Optional[str] = Query(None),
@@ -424,36 +586,47 @@ def search_projects(
     craft: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
 ):
-    return _handle(lambda: c.search_projects(query=query, page=page, page_size=page_size, craft=craft, status=status))
+    return _handle(lambda: c.projects.search(query=query, page=page, page_size=page_size, craft=craft, status=status))
 
 
-@app.get("/people/{username}/projects", tags=[projects_tag], summary="List a user's projects")
+@app.get("/projects/crafts", tags=[projects_tag], summary="List valid project crafts", response_model=ProjectCraftsResponse)
+def get_project_crafts(c: ClientDep):
+    return _handle(c.projects.crafts)
+
+
+@app.get("/projects/statuses", tags=[projects_tag], summary="List valid project statuses", response_model=ProjectStatusesResponse)
+def get_project_statuses(c: ClientDep):
+    return _handle(c.projects.statuses)
+
+
+@app.get("/people/{username}/projects", tags=[projects_tag], summary="List a user's projects", response_model=ProjectsResponse)
 def get_projects(
     c: ClientDep,
     username: str = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_projects(username=username, page=page, page_size=page_size))
+    return _handle(lambda: c.projects.list(username=username, page=page, page_size=page_size))
 
 
-@app.get("/people/{username}/projects/{project_id}", tags=[projects_tag], summary="Get a user's project")
+@app.get("/people/{username}/projects/{project_id}", tags=[projects_tag], summary="Get a user's project", response_model=ProjectResponse)
 def get_project(
     c: ClientDep,
     username: str = Path(...),
     project_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_project(username=username, project_id=project_id))
+    return _handle(lambda: c.projects.show(username=username, project_id=project_id))
 
 
-@app.get("/projects/{project_id}/comments", tags=[projects_tag], summary="Get project comments")
+@app.get("/people/{username}/projects/{project_id}/comments", tags=[projects_tag], summary="Get project comments", response_model=CommentsResponse)
 def get_project_comments(
     c: ClientDep,
+    username: str = Path(...),
     project_id: int = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_project_comments(project_id=project_id, page=page, page_size=page_size))
+    return _handle(lambda: c.projects.comments(username=username, project_id=project_id, page=page, page_size=page_size))
 
 
 # =============================================================================
@@ -463,17 +636,17 @@ def get_project_comments(
 stash_tag = "Stash"
 
 
-@app.get("/people/{username}/stash", tags=[stash_tag], summary="List a user's stash")
+@app.get("/people/{username}/stash", tags=[stash_tag], summary="List a user's stash", response_model=StashListResponse)
 def get_stash_list(
     c: ClientDep,
     username: str = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_stash_list(username=username, page=page, page_size=page_size))
+    return _handle(lambda: c.stash.list(username=username, page=page, page_size=page_size))
 
 
-@app.get("/people/{username}/stash/search", tags=[stash_tag], summary="Search a user's stash")
+@app.get("/people/{username}/stash/search", tags=[stash_tag], summary="Search a user's stash", response_model=StashListResponse)
 def search_stash(
     c: ClientDep,
     username: str = Path(...),
@@ -481,29 +654,29 @@ def search_stash(
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.search_stash(username=username, query=query, page=page, page_size=page_size))
+    return _handle(lambda: c.stash.search(username=username, query=query, page=page, page_size=page_size))
 
 
-@app.get("/people/{username}/stash/unified", tags=[stash_tag], summary="Get unified stash (yarn + fiber)")
+@app.get("/people/{username}/stash/unified", tags=[stash_tag], summary="Get unified stash (yarn + fiber)", response_model=UnifiedStashResponse)
 def get_unified_stash(
     c: ClientDep,
     username: str = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_unified_stash(username=username, page=page, page_size=page_size))
+    return _handle(lambda: c.stash.unified(username=username, page=page, page_size=page_size))
 
 
-@app.get("/people/{username}/stash/{stash_id}", tags=[stash_tag], summary="Get a stash record")
+@app.get("/people/{username}/stash/{stash_id}", tags=[stash_tag], summary="Get a stash record", response_model=StashResponse)
 def get_stash(
     c: ClientDep,
     username: str = Path(...),
     stash_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_stash(username=username, stash_id=stash_id))
+    return _handle(lambda: c.stash.show(username=username, stash_id=stash_id))
 
 
-@app.get("/people/{username}/stash/{stash_id}/comments", tags=[stash_tag], summary="Get stash comments")
+@app.get("/people/{username}/stash/{stash_id}/comments", tags=[stash_tag], summary="Get stash comments", response_model=CommentsResponse)
 def get_stash_comments(
     c: ClientDep,
     username: str = Path(...),
@@ -511,7 +684,7 @@ def get_stash_comments(
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_stash_comments(username=username, stash_id=stash_id, page=page, page_size=page_size))
+    return _handle(lambda: c.stash.comments(username=username, stash_id=stash_id, page=page, page_size=page_size))
 
 
 # =============================================================================
@@ -521,23 +694,23 @@ def get_stash_comments(
 queue_tag = "Queue"
 
 
-@app.get("/people/{username}/queue", tags=[queue_tag], summary="List a user's queue")
+@app.get("/people/{username}/queue", tags=[queue_tag], summary="List a user's queue", response_model=QueueResponse)
 def get_queue(
     c: ClientDep,
     username: str = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_queue(username=username, page=page, page_size=page_size))
+    return _handle(lambda: c.queue.list(username=username, page=page, page_size=page_size))
 
 
-@app.get("/people/{username}/queue/{queue_id}", tags=[queue_tag], summary="Get a queued project")
+@app.get("/people/{username}/queue/{queue_id}", tags=[queue_tag], summary="Get a queued project", response_model=QueuedProjectResponse)
 def get_queue_item(
     c: ClientDep,
     username: str = Path(...),
     queue_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_queue_item(username=username, queue_id=queue_id))
+    return _handle(lambda: c.queue.show(username=username, queue_id=queue_id))
 
 
 # =============================================================================
@@ -547,7 +720,7 @@ def get_queue_item(
 favorites_tag = "Favorites"
 
 
-@app.get("/people/{username}/favorites", tags=[favorites_tag], summary="List a user's favorites")
+@app.get("/people/{username}/favorites", tags=[favorites_tag], summary="List a user's favorites", response_model=FavoritesResponse)
 def get_favorites(
     c: ClientDep,
     username: str = Path(...),
@@ -557,18 +730,18 @@ def get_favorites(
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_favorites(
+    return _handle(lambda: c.favorites.list(
         username=username, types=types, query=query, tag=tag, page=page, page_size=page_size,
     ))
 
 
-@app.get("/people/{username}/favorites/{favorite_id}", tags=[favorites_tag], summary="Get a single favorite")
+@app.get("/people/{username}/favorites/{favorite_id}", tags=[favorites_tag], summary="Get a single favorite", response_model=FavoriteResponse)
 def get_favorite(
     c: ClientDep,
     username: str = Path(...),
     favorite_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_favorite(username=username, favorite_id=favorite_id))
+    return _handle(lambda: c.favorites.show(username=username, favorite_id=favorite_id))
 
 
 # =============================================================================
@@ -578,16 +751,16 @@ def get_favorite(
 fiber_tag = "Fiber"
 
 
-@app.get("/people/{username}/fiber/{fiber_id}", tags=[fiber_tag], summary="Get a fiber stash record")
+@app.get("/people/{username}/fiber/{fiber_id}", tags=[fiber_tag], summary="Get a fiber stash record", response_model=FiberStashResponse)
 def get_fiber(
     c: ClientDep,
     username: str = Path(...),
     fiber_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_fiber(username=username, fiber_id=fiber_id))
+    return _handle(lambda: c.fiber.show(username=username, fiber_id=fiber_id))
 
 
-@app.get("/people/{username}/fiber/{fiber_id}/comments", tags=[fiber_tag], summary="Get fiber stash comments")
+@app.get("/people/{username}/fiber/{fiber_id}/comments", tags=[fiber_tag], summary="Get fiber stash comments", response_model=CommentsResponse)
 def get_fiber_comments(
     c: ClientDep,
     username: str = Path(...),
@@ -596,7 +769,7 @@ def get_fiber_comments(
     page_size: Optional[int] = Query(None, ge=1, le=100),
     sort: Optional[str] = Query(None),
 ):
-    return _handle(lambda: c.get_fiber_comments(username=username, fiber_id=fiber_id, page=page, page_size=page_size, sort=sort))
+    return _handle(lambda: c.fiber.comments(username=username, fiber_id=fiber_id, page=page, page_size=page_size, sort=sort))
 
 
 # =============================================================================
@@ -606,7 +779,7 @@ def get_fiber_comments(
 bundles_tag = "Bundles"
 
 
-@app.get("/people/{username}/bundles", tags=[bundles_tag], summary="List a user's bundles")
+@app.get("/people/{username}/bundles", tags=[bundles_tag], summary="List a user's bundles", response_model=BundlesResponse)
 def get_bundles(
     c: ClientDep,
     username: str = Path(...),
@@ -615,97 +788,117 @@ def get_bundles(
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_bundles(
+    return _handle(lambda: c.bundles.list(
         username=username, owner_types=owner_types, query=query, page=page, page_size=page_size,
     ))
 
 
-@app.get("/people/{username}/bundles/{bundle_id}", tags=[bundles_tag], summary="Get a bundle")
+@app.get("/people/{username}/bundles/{bundle_id}", tags=[bundles_tag], summary="Get a bundle", response_model=BundleResponse)
 def get_bundle(
     c: ClientDep,
     username: str = Path(...),
     bundle_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_bundle(username=username, bundle_id=bundle_id))
+    return _handle(lambda: c.bundles.show(username=username, bundle_id=bundle_id))
 
 
-@app.get("/bundled-items/{bundled_item_id}", tags=[bundles_tag], summary="Get a single bundled item")
+# =============================================================================
+# Bundled Items
+# =============================================================================
+
+bundled_items_tag = "Bundled Items"
+
+
+@app.get("/bundled-items/{bundled_item_id}", tags=[bundled_items_tag], summary="Get a single bundled item", response_model=BundledItemResponse)
 def get_bundled_item(
     c: ClientDep,
     bundled_item_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_bundled_item(bundled_item_id=bundled_item_id))
-
-
-@app.get("/people/{username}/packs/{pack_id}", tags=[bundles_tag], summary="Get a pack")
-def get_pack(
-    c: ClientDep,
-    username: str = Path(...),
-    pack_id: int = Path(...),
-):
-    return _handle(lambda: c.get_pack(username=username, pack_id=pack_id))
+    return _handle(lambda: c.bundled_items.show(bundled_item_id=bundled_item_id))
 
 
 # =============================================================================
-# Forums & Topics
+# Packs
+# =============================================================================
+
+packs_tag = "Packs"
+
+
+@app.get("/packs/{pack_id}", tags=[packs_tag], summary="Get a pack", response_model=PackResponse)
+def get_pack(
+    c: ClientDep,
+    pack_id: int = Path(...),
+):
+    return _handle(lambda: c.packs.show(pack_id=pack_id))
+
+
+# =============================================================================
+# Forums
 # =============================================================================
 
 forums_tag = "Forums"
 
 
-@app.get("/forums/sets", tags=[forums_tag], summary="Get forum sets for current user")
+@app.get("/forums/sets", tags=[forums_tag], summary="Get forum sets for current user", response_model=ForumSetsResponse)
 def get_forum_sets(c: ClientDep):
-    return _handle(c.get_forum_sets)
+    return _handle(c.forums.sets)
 
 
-@app.get("/forums/filtered-topics", tags=[forums_tag], summary="Get filtered topics across all forums")
+@app.get("/forums/filtered-topics", tags=[forums_tag], summary="Get filtered topics across all forums", response_model=TopicsResponse)
 def get_filtered_topics(
     c: ClientDep,
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_filtered_topics(page=page, page_size=page_size))
+    return _handle(lambda: c.forums.filtered_topics(page=page, page_size=page_size))
 
 
-@app.get("/forums/{forum_id}/topics", tags=[forums_tag], summary="Get topics in a forum")
+@app.get("/forums/{forum_id}/topics", tags=[forums_tag], summary="Get topics in a forum", response_model=TopicsResponse)
 def get_forum_topics(
     c: ClientDep,
     forum_id: int = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_forum_topics(forum_id=forum_id, page=page, page_size=page_size))
+    return _handle(lambda: c.forums.topics(forum_id=forum_id, page=page, page_size=page_size))
 
 
-@app.get("/forum-posts/unread", tags=[forums_tag], summary="Get unread forum posts")
+@app.get("/forum-posts/unread", tags=[forums_tag], summary="Get unread forum posts", response_model=ForumPostsResponse)
 def get_unread_forum_posts(c: ClientDep):
-    return _handle(c.get_unread_forum_posts)
+    return _handle(c.forums.unread_posts)
 
 
-@app.get("/forum-posts/{post_id}", tags=[forums_tag], summary="Get a forum post")
+@app.get("/forum-posts/{post_id}", tags=[forums_tag], summary="Get a forum post", response_model=ForumPostResponse)
 def get_forum_post(
     c: ClientDep,
     post_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_forum_post(post_id=post_id))
+    return _handle(lambda: c.forums.post(post_id=post_id))
 
 
-@app.get("/topics/{topic_id}", tags=[forums_tag], summary="Get topic details")
+# =============================================================================
+# Topics
+# =============================================================================
+
+topics_tag = "Topics"
+
+
+@app.get("/topics/{topic_id}", tags=[topics_tag], summary="Get topic details", response_model=TopicResponse)
 def get_topic(
     c: ClientDep,
     topic_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_topic(topic_id=topic_id))
+    return _handle(lambda: c.topics.show(topic_id=topic_id))
 
 
-@app.get("/topics/{topic_id}/posts", tags=[forums_tag], summary="Get posts in a topic")
+@app.get("/topics/{topic_id}/posts", tags=[topics_tag], summary="Get posts in a topic", response_model=ForumPostsResponse)
 def get_topic_posts(
     c: ClientDep,
     topic_id: int = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_topic_posts(topic_id=topic_id, page=page, page_size=page_size))
+    return _handle(lambda: c.topics.posts(topic_id=topic_id, page=page, page_size=page_size))
 
 
 # =============================================================================
@@ -715,81 +908,95 @@ def get_topic_posts(
 messages_tag = "Messages"
 
 
-@app.get("/messages", tags=[messages_tag], summary="List private messages")
+@app.get("/messages", tags=[messages_tag], summary="List private messages", response_model=MessagesResponse)
 def get_messages(
     c: ClientDep,
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_messages(page=page, page_size=page_size))
+    return _handle(lambda: c.messages.list(page=page, page_size=page_size))
 
 
-@app.get("/messages/{message_id}", tags=[messages_tag], summary="Get a private message")
+@app.get("/messages/{message_id}", tags=[messages_tag], summary="Get a private message", response_model=MessageResponse)
 def get_message(
     c: ClientDep,
     message_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_message(message_id=message_id))
+    return _handle(lambda: c.messages.show(message_id=message_id))
 
 
 # =============================================================================
-# Shops, Stores & Groups
+# Shops
 # =============================================================================
 
-shops_tag = "Shops & Groups"
+shops_tag = "Shops"
 
 
-@app.get("/shops/search", tags=[shops_tag], summary="Search shops")
+@app.get("/shops/search", tags=[shops_tag], summary="Search shops", response_model=ShopsResponse)
 def search_shops(
     c: ClientDep,
     query: Optional[str] = Query(None),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.search_shops(query=query, page=page, page_size=page_size))
+    return _handle(lambda: c.shops.search(query=query, page=page, page_size=page_size))
 
 
-@app.get("/shops/{shop_id}", tags=[shops_tag], summary="Get shop details")
+@app.get("/shops/{shop_id}", tags=[shops_tag], summary="Get shop details", response_model=ShopResponse)
 def get_shop(
     c: ClientDep,
     shop_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_shop(shop_id=shop_id))
+    return _handle(lambda: c.shops.show(shop_id=shop_id))
 
 
-@app.get("/stores", tags=[shops_tag], summary="List stores")
+# =============================================================================
+# Stores
+# =============================================================================
+
+stores_tag = "Stores"
+
+
+@app.get("/stores", tags=[stores_tag], summary="List stores", response_model=StoresResponse)
 def get_stores(c: ClientDep):
-    return _handle(c.get_stores)
+    return _handle(c.stores.list)
 
 
-@app.get("/stores/{store_id}/products", tags=[shops_tag], summary="Get store products")
+@app.get("/stores/{store_id}/products", tags=[stores_tag], summary="Get store products", response_model=StoreProductsResponse)
 def get_store_products(
     c: ClientDep,
     store_id: int = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_store_products(store_id=store_id, page=page, page_size=page_size))
+    return _handle(lambda: c.stores.products(store_id=store_id, page=page, page_size=page_size))
 
 
-@app.get("/stores/{store_id}/purchases", tags=[shops_tag], summary="Get store purchases")
+@app.get("/stores/{store_id}/purchases", tags=[stores_tag], summary="Get store purchases")
 def get_store_purchases(
     c: ClientDep,
     store_id: int = Path(...),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_store_purchases(store_id=store_id, page=page, page_size=page_size))
+    return _handle(lambda: c.stores.purchases(store_id=store_id, page=page, page_size=page_size))
 
 
-@app.get("/groups/search", tags=[shops_tag], summary="Search groups")
+# =============================================================================
+# Groups
+# =============================================================================
+
+groups_tag = "Groups"
+
+
+@app.get("/groups/search", tags=[groups_tag], summary="Search groups", response_model=GroupsResponse)
 def search_groups(
     c: ClientDep,
     query: Optional[str] = Query(None),
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.search_groups(query=query, page=page, page_size=page_size))
+    return _handle(lambda: c.groups.search(query=query, page=page, page_size=page_size))
 
 
 # =============================================================================
@@ -805,106 +1012,151 @@ def get_designer(
     designer_id: int = Path(...),
     include: Optional[str] = Query(None, description="Extra data to include (e.g. featured_bundles)"),
 ):
-    return _handle(lambda: c.get_designer(designer_id=designer_id, include=include))
+    return _handle(lambda: c.designers.show(designer_id=designer_id, include=include))
 
 
 # =============================================================================
-# Products & Deliveries
+# Products
 # =============================================================================
 
-products_tag = "Products & Deliveries"
+products_tag = "Products"
 
 
-@app.get("/products/{product_id}", tags=[products_tag], summary="Get a product")
+@app.get("/products/{product_id}", tags=[products_tag], summary="Get a product", response_model=ProductResponse)
 def get_product(
     c: ClientDep,
     product_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_product(product_id=product_id))
+    return _handle(lambda: c.products.show(product_id=product_id))
 
 
-@app.get("/products/{product_id}/attachments", tags=[products_tag], summary="Get product attachments")
+@app.get("/products/{product_id}/attachments", tags=[products_tag], summary="Get product attachments", response_model=ProductAttachmentsResponse)
 def get_product_attachments(
     c: ClientDep,
     product_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_product_attachments(product_id=product_id))
+    return _handle(lambda: c.products.attachments(product_id=product_id))
 
 
-@app.get("/product-attachments/{attachment_id}", tags=[products_tag], summary="Get a product attachment")
+# =============================================================================
+# Product Attachments
+# =============================================================================
+
+product_attach_tag = "Product Attachments"
+
+
+@app.get("/product-attachments/{attachment_id}", tags=[product_attach_tag], summary="Get a product attachment", response_model=ProductAttachmentResponse)
 def get_product_attachment(
     c: ClientDep,
     attachment_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_product_attachment(attachment_id=attachment_id))
+    return _handle(lambda: c.product_attachments.show(attachment_id=attachment_id))
 
 
-@app.get("/deliveries", tags=[products_tag], summary="List deliveries (purchased/gifted products)")
+# =============================================================================
+# Deliveries
+# =============================================================================
+
+deliveries_tag = "Deliveries"
+
+
+@app.get("/deliveries", tags=[deliveries_tag], summary="List deliveries (purchased/gifted products)", response_model=DeliveriesResponse)
 def get_deliveries(
     c: ClientDep,
     page: Optional[int] = Query(None, ge=1),
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
-    return _handle(lambda: c.get_deliveries(page=page, page_size=page_size))
+    return _handle(lambda: c.deliveries.list(page=page, page_size=page_size))
 
 
 # =============================================================================
-# Draft Patterns, Volumes & Pages
+# Drafts
 # =============================================================================
 
-drafts_tag = "Drafts & Volumes"
+drafts_tag = "Drafts"
 
 
-@app.get("/drafts/patterns", tags=[drafts_tag], summary="List draft patterns")
+@app.get("/drafts/patterns", tags=[drafts_tag], summary="List draft patterns", response_model=DraftPatternsResponse)
 def get_draft_patterns(
     c: ClientDep,
     business_id: Optional[int] = Query(None),
 ):
-    return _handle(lambda: c.get_draft_patterns(business_id=business_id))
+    return _handle(lambda: c.drafts.list(business_id=business_id))
 
 
-@app.get("/drafts/patterns/{pattern_id}", tags=[drafts_tag], summary="Get a draft pattern")
+@app.get("/drafts/patterns/{pattern_id}", tags=[drafts_tag], summary="Get a draft pattern", response_model=DraftPatternResponse)
 def get_draft_pattern(
     c: ClientDep,
     pattern_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_draft_pattern(pattern_id=pattern_id))
+    return _handle(lambda: c.drafts.show(pattern_id=pattern_id))
 
 
-@app.get("/volumes/{volume_id}", tags=[drafts_tag], summary="Get volume details")
+# =============================================================================
+# Volumes
+# =============================================================================
+
+volumes_tag = "Volumes"
+
+
+@app.get("/volumes/{volume_id}", tags=[volumes_tag], summary="Get volume details", response_model=VolumeResponse)
 def get_volume(
     c: ClientDep,
     volume_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_volume(volume_id=volume_id))
+    return _handle(lambda: c.volumes.show(volume_id=volume_id))
 
 
-@app.get("/pages/{page_id}", tags=[drafts_tag], summary="Get a page")
+# =============================================================================
+# Pages
+# =============================================================================
+
+pages_tag = "Pages"
+
+
+@app.get("/pages/{page_id}", tags=[pages_tag], summary="Get a page", response_model=PageResponse)
 def get_page(
     c: ClientDep,
     page_id: int = Path(...),
 ):
-    return _handle(lambda: c.get_page(page_id=page_id))
+    return _handle(lambda: c.pages.show(page_id=page_id))
+
+
+# =============================================================================
+# Photos
+# =============================================================================
+
+photos_tag = "Photos"
+
+
+@app.get("/photos/dimensions", tags=[photos_tag], summary="List photo thumbnail dimensions")
+def get_photo_dimensions(c: ClientDep):
+    return _handle(c.photos.dimensions)
+
+
+@app.get("/photos/{photo_id}/sizes", tags=[photos_tag], summary="List available sizes for a photo")
+def get_photo_sizes(c: ClientDep, photo_id: int = Path(...)):
+    return _handle(lambda: c.photos.sizes(photo_id=photo_id))
 
 
 # =============================================================================
 # App Config
 # =============================================================================
 
-config_tag = "App Config"
+app_tag = "App"
 
 
-@app.get("/app/config", tags=[config_tag], summary="Get application configuration")
+@app.get("/app/config", tags=[app_tag], summary="Get application configuration")
 def get_app_config(
     c: ClientDep,
     keys: Optional[str] = Query(None, description="Comma-separated config keys to retrieve"),
 ):
-    return _handle(lambda: c.get_app_config(keys=keys))
+    return _handle(lambda: c.app.config(keys=keys))
 
 
-@app.get("/app/data", tags=[config_tag], summary="Get app-specific user data")
+@app.get("/app/data", tags=[app_tag], summary="Get app-specific user data")
 def get_app_data(
     c: ClientDep,
     keys: Optional[str] = Query(None, description="Comma-separated data keys to retrieve"),
 ):
-    return _handle(lambda: c.get_app_data(keys=keys))
+    return _handle(lambda: c.app.data(keys=keys))

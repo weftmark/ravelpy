@@ -1,0 +1,10 @@
+from typing import Optional
+from .base import ETagResult, Resource
+
+
+class Drafts(Resource):
+    def list(self, business_id: Optional[int] = None, etag: Optional[str] = None) -> ETagResult:
+        return self._get("/drafts/patterns/list.json", {"business_id": business_id}, etag=etag)
+
+    def show(self, pattern_id: int, etag: Optional[str] = None) -> ETagResult:
+        return self._get(f"/drafts/patterns/{pattern_id}.json", etag=etag)
