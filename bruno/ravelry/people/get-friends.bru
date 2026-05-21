@@ -1,0 +1,11 @@
+meta {
+  name: Get Friends
+  type: http
+  seq: 5
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/friends/list.json
+  body: none
+  auth: inherit
+}

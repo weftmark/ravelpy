@@ -1,0 +1,16 @@
+meta {
+  name: Get Queue
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/queue/list.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+}

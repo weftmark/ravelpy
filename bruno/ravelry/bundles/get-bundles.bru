@@ -1,0 +1,18 @@
+meta {
+  name: Get Bundles
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/bundles/list.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~owner_types:
+  ~query:
+  ~page: 1
+  ~page_size: 25
+}

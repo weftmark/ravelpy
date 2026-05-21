@@ -1,0 +1,20 @@
+meta {
+  name: Get Store Purchases
+  type: http
+  seq: 5
+}
+
+get {
+  url: https://api.ravelry.com/stores/{{storeId}}/purchases.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  storeId: 1
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+}

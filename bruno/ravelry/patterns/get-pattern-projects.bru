@@ -1,0 +1,20 @@
+meta {
+  name: Get Pattern Projects
+  type: http
+  seq: 6
+}
+
+get {
+  url: https://api.ravelry.com/patterns/{{patternId}}/projects.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  patternId: 1
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+}

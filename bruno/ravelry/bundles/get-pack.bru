@@ -1,0 +1,15 @@
+meta {
+  name: Get Pack
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/packs/{{packId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  packId: 1
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Get Volume
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.ravelry.com/volumes/{{volumeId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  volumeId: 1
+}

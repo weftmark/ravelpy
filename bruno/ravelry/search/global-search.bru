@@ -1,0 +1,17 @@
+meta {
+  name: Global Search
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.ravelry.com/search.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  query: socks
+  ~types: patterns,yarns
+  ~limit: 10
+}

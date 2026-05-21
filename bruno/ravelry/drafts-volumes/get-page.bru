@@ -1,0 +1,15 @@
+meta {
+  name: Get Page
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.ravelry.com/pages/{{pageId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  pageId: 1
+}

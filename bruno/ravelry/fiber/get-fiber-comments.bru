@@ -1,0 +1,21 @@
+meta {
+  name: Get Fiber Comments
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/fiber/{{fiberId}}/comments.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  fiberId: 1
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+  ~sort: time
+}

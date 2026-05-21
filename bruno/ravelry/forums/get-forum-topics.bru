@@ -1,0 +1,20 @@
+meta {
+  name: Get Forum Topics
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.ravelry.com/forums/{{forumId}}/topics.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  forumId: 1
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Search Projects
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.ravelry.com/projects/search.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~query:
+  ~page: 1
+  ~page_size: 25
+  ~craft: knitting
+  ~status: finished
+}

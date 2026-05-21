@@ -1,0 +1,15 @@
+meta {
+  name: Get Queue Item
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/queue/{{queueId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  queueId: 1
+}

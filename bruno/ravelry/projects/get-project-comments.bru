@@ -1,0 +1,20 @@
+meta {
+  name: Get Project Comments
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.ravelry.com/projects/{{projectId}}/comments.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  projectId: 1
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+}

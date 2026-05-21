@@ -1,0 +1,15 @@
+meta {
+  name: Get App Data
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.ravelry.com/app/data/get.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~keys:
+}

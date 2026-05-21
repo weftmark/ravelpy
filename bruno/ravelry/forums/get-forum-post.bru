@@ -1,0 +1,15 @@
+meta {
+  name: Get Forum Post
+  type: http
+  seq: 5
+}
+
+get {
+  url: https://api.ravelry.com/forum_posts/{{forumPostId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  forumPostId: 1
+}

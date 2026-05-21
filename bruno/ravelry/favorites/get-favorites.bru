@@ -1,0 +1,19 @@
+meta {
+  name: Get Favorites
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/favorites/list.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~types: pattern
+  ~query:
+  ~tag:
+  ~page: 1
+  ~page_size: 25
+}

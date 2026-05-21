@@ -1,0 +1,15 @@
+meta {
+  name: Get Bundled Item
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.ravelry.com/bundled_items/{{bundledItemId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  bundledItemId: 1
+}

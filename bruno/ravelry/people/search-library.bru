@@ -1,0 +1,17 @@
+meta {
+  name: Search Library
+  type: http
+  seq: 7
+}
+
+get {
+  url: https://api.ravelry.com/library/{{username}}/search.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~query:
+  ~page: 1
+  ~page_size: 25
+}

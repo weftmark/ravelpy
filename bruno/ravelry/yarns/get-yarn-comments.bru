@@ -1,0 +1,21 @@
+meta {
+  name: Get Yarn Comments
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.ravelry.com/yarns/{{yarnId}}/comments.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  yarnId: 1
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+  ~sort: time
+}

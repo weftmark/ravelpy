@@ -1,0 +1,17 @@
+meta {
+  name: Search Yarn Companies
+  type: http
+  seq: 5
+}
+
+get {
+  url: https://api.ravelry.com/yarn_companies/search.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~query:
+  ~page: 1
+  ~page_size: 25
+}

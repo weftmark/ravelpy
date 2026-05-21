@@ -1,0 +1,16 @@
+meta {
+  name: Get Deliveries
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.ravelry.com/deliveries/list.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+}

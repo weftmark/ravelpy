@@ -1,0 +1,15 @@
+meta {
+  name: Get Project
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/projects/{{projectId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  projectId: 1
+}

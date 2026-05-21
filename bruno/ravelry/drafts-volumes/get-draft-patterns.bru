@@ -1,0 +1,15 @@
+meta {
+  name: Get Draft Patterns
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.ravelry.com/drafts/patterns/list.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~business_id:
+}

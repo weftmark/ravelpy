@@ -1,0 +1,17 @@
+meta {
+  name: Search Groups
+  type: http
+  seq: 6
+}
+
+get {
+  url: https://api.ravelry.com/groups/groups.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~query:
+  ~page: 1
+  ~page_size: 25
+}

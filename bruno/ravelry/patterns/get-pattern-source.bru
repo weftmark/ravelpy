@@ -1,0 +1,15 @@
+meta {
+  name: Get Pattern Source
+  type: http
+  seq: 8
+}
+
+get {
+  url: https://api.ravelry.com/pattern_sources/{{patternSourceId}}.json
+  body: none
+  auth: inherit
+}
+
+vars {
+  patternSourceId: 1
+}

@@ -1,0 +1,11 @@
+meta {
+  name: Get Saved Searches
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/saved_searches/list.json
+  body: none
+  auth: inherit
+}

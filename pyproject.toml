@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ravelpy"
+version = "0.1.0"
+description = "Python client for the Ravelry REST API"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "Derek Rowland", email = "gx1400@gmail.com" }]
+keywords = ["ravelry", "knitting", "crochet", "yarn", "api", "client"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+server = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+    "python-dotenv>=1.0.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "respx>=0.21.0",
+    "python-dotenv>=1.0.0",
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/gx1400/ravelry-api"
+Repository = "https://github.com/gx1400/ravelry-api"
+"Bug Tracker" = "https://github.com/gx1400/ravelry-api/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ravelpy"]

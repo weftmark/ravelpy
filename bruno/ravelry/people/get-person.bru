@@ -1,0 +1,11 @@
+meta {
+  name: Get Person
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}.json
+  body: none
+  auth: inherit
+}

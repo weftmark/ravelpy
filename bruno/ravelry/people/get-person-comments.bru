@@ -1,0 +1,16 @@
+meta {
+  name: Get Person Comments
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.ravelry.com/people/{{username}}/comments/list.json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page: 1
+  ~page_size: 25
+}
