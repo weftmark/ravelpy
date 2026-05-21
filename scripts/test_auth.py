@@ -36,6 +36,15 @@ def _parse_args() -> argparse.Namespace:
     )
     p.add_argument("--api-user", metavar="USERNAME", help="Ravelry username (overrides env file)")
     p.add_argument("--api-key",  metavar="KEY",      help="Ravelry API key (overrides env file)")
+    p.add_argument(
+        "--personal-key",
+        action="store_true",
+        help=(
+            "Key is a personal account key (access_key/personal_key) rather than a "
+            "developer read-only key. Flips 'authenticated' expectation: personal keys "
+            "are accepted (200/404) instead of rejected (401/403)."
+        ),
+    )
     return p.parse_args()
 
 
@@ -249,6 +258,7 @@ CASES: list[Case] = [
 
 
 def run() -> None:
+    personal = args.personal_key
     session = httpx.Client(auth=(USERNAME, API_KEY), headers={"Accept": "application/json"}, timeout=15.0)
 
     results: list[tuple[Case, int]] = []
@@ -266,35 +276,43 @@ def run() -> None:
     col_exp      = 7
     col_got      = 5
 
+    key_mode = "personal key (authenticated -> expect 200/404)" if personal else "read-only key (authenticated -> expect 401/403)"
     header = (
         f"{'Resource':<{col_resource}} {'Method':<{col_method}} {'Path':<{col_path}} "
         f"{'Exp':<{col_exp}} {'Got':<{col_got}} Match  Note"
     )
     sep = "-" * len(header)
+    print(f"Key mode: {key_mode}")
     print(header)
     print(sep)
 
     pass_count = fail_count = special_count = 0
 
+    REJECTED = (401, 403, 302)
+
     for case, status in results:
         if case.expected == "public":
-            # 200/304/404/500 all indicate credential was accepted; 302→login or 401/403 = rejected
-            match = status not in (401, 403, 302)
-            symbol = "OK" if match else "FAIL"
-            if match:
-                pass_count += 1
-            else:
-                fail_count += 1
+            # 200/304/404/500 indicate credential accepted; 302→login or 401/403 = rejected
+            match = status not in REJECTED
         elif case.expected == "authenticated":
-            match = status in (401, 403, 302)
-            symbol = "OK" if match else "FAIL"
-            if match:
-                pass_count += 1
+            if personal:
+                # Personal key should be accepted on authenticated endpoints
+                match = status not in REJECTED
             else:
-                fail_count += 1
+                # Read-only key should be rejected on authenticated endpoints
+                match = status in REJECTED
         else:
+            match = None  # special / unknown
+
+        if match is None:
             symbol = "----"
             special_count += 1
+        elif match:
+            symbol = "OK"
+            pass_count += 1
+        else:
+            symbol = "FAIL"
+            fail_count += 1
 
         path_display = case.path
         if len(path_display) > col_path:
