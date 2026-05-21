@@ -2,24 +2,49 @@
 Brassard yarn exploration script.
 
   python scripts/brassard_colors.py
+  python scripts/brassard_colors.py --env-file .env.user.read
+  python scripts/brassard_colors.py --api-user read-xxxx --api-key yourkey
 
-Loads credentials from .env.developer.readonly in the repo root, then:
+Loads credentials from .env.developer.readonly in the repo root (or the file /
+credentials passed via flags), then:
   1. Searches yarn companies for "brassard"
   2. Searches yarns for "brassard 8/2 unmercerized cotton"
   3. Fetches full yarn detail + colorways for the first match
 """
 
+import argparse
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 from ravelpy import RavelryClient
 
-load_dotenv(Path(__file__).parent.parent / ".env.developer.readonly")
+ROOT = Path(__file__).parent.parent
 
-username = os.environ["RAVELRY_USERNAME"]
-api_key  = os.environ["RAVELRY_API_KEY"]
+
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Brassard yarn exploration")
+    p.add_argument(
+        "--env-file",
+        metavar="FILE",
+        default=str(ROOT / ".env.developer.readonly"),
+        help="Env file to load credentials from (default: .env.developer.readonly)",
+    )
+    p.add_argument("--api-user", metavar="USERNAME", help="Ravelry username (overrides env file)")
+    p.add_argument("--api-key",  metavar="KEY",      help="Ravelry API key (overrides env file)")
+    return p.parse_args()
+
+
+args = _parse_args()
+load_dotenv(Path(args.env_file))
+
+username = args.api_user or os.environ.get("RAVELRY_USERNAME", "")
+api_key  = args.api_key  or os.environ.get("RAVELRY_API_KEY",  "")
+
+if not username or not api_key:
+    sys.exit(f"Credentials required: set RAVELRY_USERNAME/RAVELRY_API_KEY in {args.env_file} or pass --api-user/--api-key")
 
 client = RavelryClient(username, api_key)
 

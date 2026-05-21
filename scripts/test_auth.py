@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 """Live API smoke test — validates auth tier requirements against real endpoints.
 
-Loads read-only Basic Auth credentials from .env.developer.readonly and calls every endpoint in the
-library.  Reports the actual HTTP status code and whether it matches the expected
-auth tier:
+Loads credentials from an env file and calls every endpoint in the library.
+Reports the actual HTTP status code and whether it matches the expected auth tier:
 
   public       → expect 200 or 404  (credential accepted; resource may not exist)
   authenticated → expect 401 or 403  (credential rejected)
-  special       → noted in the table; outcome uncertain with read-only key
 
 Usage:
     python scripts/test_auth.py
-
-Credentials required in .env.developer.readonly:
-    RAVELRY_USERNAME=read-xxxx
-    RAVELRY_API_KEY=your-key
+    python scripts/test_auth.py --env-file .env.user.read
+    python scripts/test_auth.py --api-user read-xxxx --api-key yourkey
 """
 
+import argparse
 import os
 import sys
 from dataclasses import dataclass, field
@@ -26,13 +23,30 @@ from typing import Optional
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent.parent / ".env.developer.readonly")
+ROOT = Path(__file__).parent.parent
 
-USERNAME = os.environ.get("RAVELRY_USERNAME", "")
-API_KEY = os.environ.get("RAVELRY_API_KEY", "")
+
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Ravelry API auth smoke test")
+    p.add_argument(
+        "--env-file",
+        metavar="FILE",
+        default=str(ROOT / ".env.developer.readonly"),
+        help="Env file to load credentials from (default: .env.developer.readonly)",
+    )
+    p.add_argument("--api-user", metavar="USERNAME", help="Ravelry username (overrides env file)")
+    p.add_argument("--api-key",  metavar="KEY",      help="Ravelry API key (overrides env file)")
+    return p.parse_args()
+
+
+args = _parse_args()
+load_dotenv(Path(args.env_file))
+
+USERNAME = args.api_user or os.environ.get("RAVELRY_USERNAME", "")
+API_KEY  = args.api_key  or os.environ.get("RAVELRY_API_KEY",  "")
 
 if not USERNAME or not API_KEY:
-    sys.exit("RAVELRY_USERNAME and RAVELRY_API_KEY must be set in .env.developer.readonly")
+    sys.exit(f"Credentials required: set RAVELRY_USERNAME/RAVELRY_API_KEY in {args.env_file} or pass --api-user/--api-key")
 
 BASE_URL = "https://api.ravelry.com"
 TEST_USER = "tester"  # placeholder username for user-scoped paths; auth result is what matters

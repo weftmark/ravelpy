@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Obtain a Ravelry OAuth 2.0 access token via the browser authorization code flow.
 
-Reads OAuth client credentials from .env.oauth, opens the user's browser to
-Ravelry's authorization page, captures the callback on localhost, and saves
+Reads OAuth client credentials from .env.oauth (or flags), opens the user's browser
+to Ravelry's authorization page, captures the callback on localhost, and saves
 the resulting tokens to .oauth_tokens.json.
 
 Prerequisites:
@@ -12,6 +12,8 @@ Prerequisites:
 
 Usage:
     python scripts/oauth_login.py
+    python scripts/oauth_login.py --env-file .env.oauth
+    python scripts/oauth_login.py --oauth-clientid your_id --oauth-secret your_secret
 
 .env.oauth format:
     RAVELRY_OAUTH_CLIENT_ID=your_client_id
@@ -20,6 +22,7 @@ Usage:
     RAVELRY_OAUTH_SCOPES=offline                               # optional, space-separated
 """
 
+import argparse
 import os
 import sys
 from pathlib import Path
@@ -28,17 +31,32 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
 
-load_dotenv(ROOT / ".env.oauth")
 
-CLIENT_ID = os.environ.get("RAVELRY_OAUTH_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("RAVELRY_OAUTH_CLIENT_SECRET", "")
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Ravelry OAuth 2.0 login")
+    p.add_argument(
+        "--env-file",
+        metavar="FILE",
+        default=str(ROOT / ".env.oauth"),
+        help="Env file to load OAuth credentials from (default: .env.oauth)",
+    )
+    p.add_argument("--oauth-clientid", metavar="ID",     help="OAuth client ID (overrides env file)")
+    p.add_argument("--oauth-secret",   metavar="SECRET", help="OAuth client secret (overrides env file)")
+    return p.parse_args()
+
+
+args = _parse_args()
+load_dotenv(Path(args.env_file))
+
+CLIENT_ID = args.oauth_clientid or os.environ.get("RAVELRY_OAUTH_CLIENT_ID", "")
+CLIENT_SECRET = args.oauth_secret or os.environ.get("RAVELRY_OAUTH_CLIENT_SECRET", "")
 REDIRECT_URI = os.environ.get("RAVELRY_OAUTH_REDIRECT_URI", "http://localhost:8080/callback")
 SCOPES = os.environ.get("RAVELRY_OAUTH_SCOPES", "offline").split()
 
 if not CLIENT_ID or not CLIENT_SECRET:
     sys.exit(
-        "RAVELRY_OAUTH_CLIENT_ID and RAVELRY_OAUTH_CLIENT_SECRET must be set in .env.oauth\n"
-        "See .env.example for the full format."
+        f"OAuth credentials required: set RAVELRY_OAUTH_CLIENT_ID/RAVELRY_OAUTH_CLIENT_SECRET in {args.env_file}\n"
+        "or pass --oauth-clientid/--oauth-secret. See .env.example for the full format."
     )
 
 from ravelpy.oauth import OAuthClient, save_tokens

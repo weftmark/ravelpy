@@ -7,8 +7,11 @@ with the new token data.
 
 Usage:
     python scripts/oauth_refresh.py
+    python scripts/oauth_refresh.py --env-file .env.oauth
+    python scripts/oauth_refresh.py --oauth-clientid your_id --oauth-secret your_secret
 """
 
+import argparse
 import os
 import sys
 from pathlib import Path
@@ -17,14 +20,32 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
 
-load_dotenv(ROOT / ".env.oauth")
 
-CLIENT_ID = os.environ.get("RAVELRY_OAUTH_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("RAVELRY_OAUTH_CLIENT_SECRET", "")
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Ravelry OAuth 2.0 token refresh")
+    p.add_argument(
+        "--env-file",
+        metavar="FILE",
+        default=str(ROOT / ".env.oauth"),
+        help="Env file to load OAuth credentials from (default: .env.oauth)",
+    )
+    p.add_argument("--oauth-clientid", metavar="ID",     help="OAuth client ID (overrides env file)")
+    p.add_argument("--oauth-secret",   metavar="SECRET", help="OAuth client secret (overrides env file)")
+    return p.parse_args()
+
+
+args = _parse_args()
+load_dotenv(Path(args.env_file))
+
+CLIENT_ID = args.oauth_clientid or os.environ.get("RAVELRY_OAUTH_CLIENT_ID", "")
+CLIENT_SECRET = args.oauth_secret or os.environ.get("RAVELRY_OAUTH_CLIENT_SECRET", "")
 REDIRECT_URI = os.environ.get("RAVELRY_OAUTH_REDIRECT_URI", "http://localhost:8080/callback")
 
 if not CLIENT_ID or not CLIENT_SECRET:
-    sys.exit("RAVELRY_OAUTH_CLIENT_ID and RAVELRY_OAUTH_CLIENT_SECRET must be set in .env.oauth")
+    sys.exit(
+        f"OAuth credentials required: set RAVELRY_OAUTH_CLIENT_ID/RAVELRY_OAUTH_CLIENT_SECRET in {args.env_file} "
+        "or pass --oauth-clientid/--oauth-secret"
+    )
 
 token_path = ROOT / ".oauth_tokens.json"
 if not token_path.exists():
