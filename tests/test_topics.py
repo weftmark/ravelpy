@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.topics.Topics` resource methods."""
+
+
 def test_show_topic(client, mock_api):
     mock_api.get("/topics/20.json").respond(200, json={"topic": {"id": 20}})
     _, _, raw = client.topics.show(topic_id=20)

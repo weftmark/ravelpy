@@ -1,9 +1,13 @@
+"""Sub-client for Ravelry Groups API endpoints."""
+
 from typing import Optional
 from .base import ApiResult, Resource
 from ..responses import GroupsResponse
 
 
 class Groups(Resource):
+    """Wraps the group search endpoint."""
+
     def search(
         self,
         query: Optional[str] = None,
@@ -11,4 +15,5 @@ class Groups(Resource):
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
     ) -> ApiResult:
+        """Search groups (``GET /groups/search.json``)."""
         return self._get("/groups/search.json", {"query": query, "page": page, "page_size": page_size}, etag=etag, model=GroupsResponse)

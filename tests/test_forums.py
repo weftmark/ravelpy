@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.forums.Forums` resource methods."""
+
+
 def test_forum_sets(client, mock_api):
     mock_api.get("/forums/sets.json").respond(200, json={"forum_sets": []})
     client.forums.sets()

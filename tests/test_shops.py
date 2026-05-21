@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.shops.Shops` resource methods."""
+
+
 def test_search_shops(client, mock_api):
     mock_api.get("/shops/search.json").respond(200, json={"shops": []})
     client.shops.search(query="wool")

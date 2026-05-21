@@ -1,3 +1,5 @@
+"""Tests for :class:`~ravelpy.resources.yarn_attributes.YarnAttributes` resource methods."""
+
 import pytest
 
 from ravelpy import RavelryAPIError

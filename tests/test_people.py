@@ -1,3 +1,5 @@
+"""Tests for :class:`~ravelpy.resources.people.People` resource methods."""
+
 import pytest
 
 from ravelpy import RavelryAPIError

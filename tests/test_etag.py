@@ -1,3 +1,5 @@
+"""Tests for ETag / conditional-GET behaviour across resource methods."""
+
 import pytest
 import respx
 import httpx

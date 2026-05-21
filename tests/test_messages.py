@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.messages.Messages` resource methods."""
+
+
 def test_list_messages(client, mock_api):
     mock_api.get("/messages/list.json").respond(200, json={"messages": []})
     client.messages.list()

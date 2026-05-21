@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.projects.Projects` resource methods."""
+
+
 def test_list_projects(client, mock_api):
     mock_api.get("/projects/foo/list.json").respond(200, json={"projects": []})
     client.projects.list(username="foo")

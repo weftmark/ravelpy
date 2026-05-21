@@ -1,3 +1,5 @@
+"""Re-exports all resource sub-client classes and the shared ``ApiResult`` type alias."""
+
 from .app import App
 from .base import ApiResult, Resource
 from .bundled_items import BundledItems

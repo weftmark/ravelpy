@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.fiber.Fiber` resource methods."""
+
+
 def test_show_fiber(client, mock_api):
     mock_api.get("/people/foo/fiber/4.json").respond(200, json={"fiber": {"id": 4}})
     _, _, raw = client.fiber.show(username="foo", fiber_id=4)

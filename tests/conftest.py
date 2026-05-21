@@ -1,3 +1,5 @@
+"""Shared pytest fixtures for the ravelpy test suite."""
+
 import pytest
 import respx
 import httpx

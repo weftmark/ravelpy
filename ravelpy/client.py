@@ -1,3 +1,5 @@
+"""Top-level client that wires a shared httpx session to every resource sub-client."""
+
 import httpx
 
 from .resources import (
@@ -44,9 +46,24 @@ from .resources import (
 
 
 class RavelryClient:
-    """Read-only client for the Ravelry API using developer credentials (HTTP Basic Auth)."""
+    """Read-only client for the Ravelry API using developer credentials (HTTP Basic Auth).
+
+    All resource sub-clients share a single :class:`httpx.Client` session so
+    that connection pooling and authentication headers are applied uniformly.
+
+    Example::
+
+        client = RavelryClient(username="you", api_key="your-key")
+        parsed, etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
+    """
 
     def __init__(self, username: str, api_key: str) -> None:
+        """Create a client authenticated with Ravelry developer credentials.
+
+        Args:
+            username: Your Ravelry username (used as the Basic Auth user).
+            api_key:  Your Ravelry API key (used as the Basic Auth password).
+        """
         session = httpx.Client(auth=(username, api_key), headers={"Accept": "application/json"})
         self.app = App(session)
         self.bundled_items = BundledItems(session)

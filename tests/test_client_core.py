@@ -1,3 +1,5 @@
+"""Tests for :class:`~ravelpy.client.RavelryClient` construction and core ``_get`` behaviour."""
+
 import pytest
 import respx
 import httpx

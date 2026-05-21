@@ -1,3 +1,5 @@
+"""Tests for reference data endpoints (color families, needles, languages, etc.)."""
+
 import pytest
 
 

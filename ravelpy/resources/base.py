@@ -1,3 +1,5 @@
+"""Base resource class and shared return-type alias used by all resource sub-clients."""
+
 import httpx
 from typing import Any, Optional, Type
 from pydantic import BaseModel
@@ -5,12 +7,33 @@ from pydantic import BaseModel
 from ..exceptions import RavelryAPIError
 
 ApiResult = tuple[Any, Optional[str], Optional[dict]]
+"""3-tuple returned by every resource method: ``(parsed, etag, raw)``.
+
+* **parsed** – a validated Pydantic model instance when the response matches
+  the expected envelope, or the raw ``dict`` when validation fails or no
+  model was supplied.  ``None`` on HTTP 304.
+* **etag** – the ``ETag`` header value from the response, or the original
+  etag echoed back on HTTP 304.  ``None`` when the server sends no ETag.
+* **raw** – the unmodified JSON ``dict`` from the API body.  Always present
+  alongside a non-``None`` ``parsed``; ``None`` on HTTP 304.
+"""
 
 
 class Resource:
+    """Base class for all Ravelry resource sub-clients.
+
+    Subclasses call :meth:`_get` with the API path, optional query parameters,
+    an optional ETag for conditional requests, and an optional Pydantic model
+    class to parse the response into.
+    """
+
     BASE_URL = "https://api.ravelry.com"
 
     def __init__(self, session: httpx.Client) -> None:
+        """
+        Args:
+            session: Authenticated :class:`httpx.Client` shared across all resources.
+        """
         self._session = session
 
     def _get(
@@ -20,6 +43,21 @@ class Resource:
         etag: Optional[str] = None,
         model: Optional[Type[BaseModel]] = None,
     ) -> ApiResult:
+        """Execute a GET request and return ``(parsed, etag, raw)``.
+
+        Args:
+            path:   API path relative to ``BASE_URL`` (e.g. ``/yarns/1.json``).
+            params: Query parameters; ``None`` values are stripped before sending.
+            etag:   If provided, sent as ``If-None-Match`` for conditional caching.
+            model:  Pydantic model class to validate the response body against.
+                    Falls back to the raw dict if validation raises.
+
+        Returns:
+            :data:`ApiResult` 3-tuple ``(parsed, etag, raw)``.
+
+        Raises:
+            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx, non-304 response.
+        """
         url = f"{self.BASE_URL}{path}"
         clean_params = {k: v for k, v in (params or {}).items() if v is not None}
         headers = {"If-None-Match": etag} if etag else {}

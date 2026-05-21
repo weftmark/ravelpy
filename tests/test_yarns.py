@@ -1,3 +1,5 @@
+"""Tests for :class:`~ravelpy.resources.yarns.Yarns` resource methods."""
+
 import pytest
 import respx
 

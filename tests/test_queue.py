@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.queue.Queue` resource methods."""
+
+
 def test_list_queue(client, mock_api):
     mock_api.get("/people/foo/queue/list.json").respond(200, json={"queued_projects": []})
     client.queue.list(username="foo")

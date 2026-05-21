@@ -1,3 +1,15 @@
+"""Pydantic v2 entity models mirroring the objects returned by the Ravelry API.
+
+Models are organised in dependency order so that nested types are defined
+before the models that reference them.  Self-referential models (those with
+child/parent references to themselves) call ``model_rebuild()`` at the end of
+the module once all classes are available.
+
+All fields are ``Optional`` by default because the Ravelry API frequently
+omits fields depending on the endpoint, query parameters, and account
+permissions.
+"""
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -12,11 +24,15 @@ from pydantic import BaseModel
 
 
 class Ad(BaseModel):
+    """A Ravelry advertisement with logo and target URL."""
+
     logo_url: Optional[str] = None
     target_url: Optional[str] = None
 
 
 class Business(BaseModel):
+    """A Ravelry business entity (designer studio, shop, or publisher)."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -24,6 +40,8 @@ class Business(BaseModel):
 
 
 class ColorFamily(BaseModel):
+    """A named colour family used to categorise yarns and stash."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -32,12 +50,16 @@ class ColorFamily(BaseModel):
 
 
 class Craft(BaseModel):
+    """A craft type such as knitting or crochet."""
+
     id: int
     name: str
     permalink: Optional[str] = None
 
 
 class Document(BaseModel):
+    """A downloadable file attached to a product or pattern."""
+
     id: int
     filename: Optional[str] = None
     bytes: Optional[int] = None
@@ -47,12 +69,16 @@ class Document(BaseModel):
 
 
 class DownloadLink(BaseModel):
+    """A time-limited URL for downloading purchased content."""
+
     url: Optional[str] = None
     activated_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
 
 
 class FiberAttributeGroup(BaseModel):
+    """A grouping of related fiber attributes."""
+
     id: int
     name: str
     permalink: Optional[str] = None
@@ -60,6 +86,8 @@ class FiberAttributeGroup(BaseModel):
 
 
 class FiberAttribute(BaseModel):
+    """A single fiber attribute (e.g. machine washable) within a group."""
+
     id: int
     name: str
     permalink: Optional[str] = None
@@ -67,6 +95,8 @@ class FiberAttribute(BaseModel):
 
 
 class FiberType(BaseModel):
+    """A raw fiber type (e.g. merino, cotton) with processing flags."""
+
     id: int
     name: Optional[str] = None
     animal_fiber: Optional[bool] = None
@@ -75,6 +105,8 @@ class FiberType(BaseModel):
 
 
 class ForumStatisticSummary(BaseModel):
+    """Aggregated activity statistics for a single forum."""
+
     forum_id: Optional[int] = None
     new_topics_30day: Optional[int] = None
     new_topics_7day: Optional[int] = None
@@ -91,6 +123,8 @@ class ForumStatisticSummary(BaseModel):
 
 
 class Invoice(BaseModel):
+    """A payment invoice for a Ravelry store purchase."""
+
     id: int
     invoice_number: Optional[int] = None
     paid: Optional[bool] = None
@@ -98,6 +132,8 @@ class Invoice(BaseModel):
 
 
 class InvoiceLineItem(BaseModel):
+    """A single line item on a store invoice."""
+
     id: int
     invoice_id: Optional[int] = None
     product_id: Optional[int] = None
@@ -108,6 +144,8 @@ class InvoiceLineItem(BaseModel):
 
 
 class Language(BaseModel):
+    """A language supported by Ravelry for pattern translations."""
+
     id: int
     name: Optional[str] = None
     code: Optional[str] = None
@@ -117,12 +155,16 @@ class Language(BaseModel):
 
 
 class NeedleRecord(BaseModel):
+    """A needle in a user's needle inventory."""
+
     id: int
     needle_type_id: Optional[int] = None
     comment: Optional[str] = None
 
 
 class NeedleSize(BaseModel):
+    """A standard needle or hook size with metric and US equivalents."""
+
     id: int
     name: Optional[str] = None
     metric: Optional[float] = None
@@ -134,6 +176,8 @@ class NeedleSize(BaseModel):
 
 
 class NeedleType(BaseModel):
+    """A needle type (e.g. straight, circular, DPN)."""
+
     id: int
     name: Optional[str] = None
     type_name: Optional[str] = None
@@ -144,22 +188,30 @@ class NeedleType(BaseModel):
 
 
 class Page(BaseModel):
+    """A static content page on Ravelry."""
+
     name: Optional[str] = None
     body: Optional[str] = None
 
 
 class PatternAttribute(BaseModel):
+    """A single searchable attribute tag on a pattern."""
+
     id: int
     permalink: Optional[str] = None
 
 
 class PatternClassification(BaseModel):
+    """Links a pattern to a pattern category."""
+
     id: int
     pattern_id: Optional[int] = None
     pattern_category_id: Optional[int] = None
 
 
 class PatternLanguage(BaseModel):
+    """Links a pattern to a translated language."""
+
     id: int
     pattern_id: Optional[int] = None
     language_id: Optional[int] = None
@@ -168,6 +220,8 @@ class PatternLanguage(BaseModel):
 
 
 class PatternNeedleSize(BaseModel):
+    """A needle size requirement as specified on a pattern."""
+
     id: Optional[int] = None
     needle_size_id: Optional[int] = None
     hook: Optional[bool] = None
@@ -179,6 +233,8 @@ class PatternNeedleSize(BaseModel):
 
 
 class PatternSourceType(BaseModel):
+    """A publication type for pattern sources (e.g. book, magazine, online)."""
+
     id: int
     name: Optional[str] = None
     long_name: Optional[str] = None
@@ -187,12 +243,16 @@ class PatternSourceType(BaseModel):
 
 
 class PatternTagging(BaseModel):
+    """Maps a pattern attribute to a pattern."""
+
     id: int
     pattern_id: Optional[int] = None
     pattern_attribute_id: Optional[int] = None
 
 
 class Payment(BaseModel):
+    """A payment transaction record."""
+
     id: int
     gross: Optional[Decimal] = None
     txn_id: Optional[int] = None
@@ -200,6 +260,8 @@ class Payment(BaseModel):
 
 
 class Photo(BaseModel):
+    """A photo with multiple size variants and an optional caption."""
+
     id: int
     caption: Optional[str] = None
     caption_html: Optional[str] = None
@@ -218,6 +280,8 @@ class Photo(BaseModel):
 
 
 class ProductNotification(BaseModel):
+    """A version or update notification for a purchased product."""
+
     id: int
     product_id: Optional[int] = None
     created_at: Optional[datetime] = None
@@ -227,18 +291,24 @@ class ProductNotification(BaseModel):
 
 
 class ProjectStatus(BaseModel):
+    """A named project status (e.g. in progress, finished)."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
 
 
 class QueuedProject(BaseModel):
+    """A pattern entry in a user's queue."""
+
     id: int
     short_pattern_name: Optional[str] = None
     position_in_queue: Optional[int] = None
 
 
 class Saleable(BaseModel):
+    """An item that can be sold, linking a product to its underlying entity."""
+
     id: int
     product_id: Optional[int] = None
     saleable_id: Optional[int] = None
@@ -248,6 +318,8 @@ class Saleable(BaseModel):
 
 
 class SavedSearch(BaseModel):
+    """A saved search query with optional email subscription."""
+
     id: int
     title: Optional[str] = None
     search_type: Optional[str] = None
@@ -261,6 +333,8 @@ class SavedSearch(BaseModel):
 
 
 class ShopSchedule(BaseModel):
+    """A single day's opening hours for a yarn shop."""
+
     day_of_week: Optional[int] = None
     day_name: Optional[str] = None
     closed: Optional[bool] = None
@@ -269,11 +343,15 @@ class ShopSchedule(BaseModel):
 
 
 class StashStatus(BaseModel):
+    """A named stash status (e.g. stashed, in use, used up)."""
+
     id: int
     name: Optional[str] = None
 
 
 class Tool(BaseModel):
+    """A knitting or craft tool in a user's tool inventory."""
+
     id: int
     name: Optional[str] = None
     make: Optional[str] = None
@@ -284,12 +362,16 @@ class Tool(BaseModel):
 
 
 class YarnAttributeGroup(BaseModel):
+    """A grouping of yarn attributes used in search filtering."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
 
 
 class YarnCompany(BaseModel):
+    """A yarn brand or manufacturer."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -299,6 +381,8 @@ class YarnCompany(BaseModel):
 
 
 class YarnWeight(BaseModel):
+    """A standard yarn weight category with WPI range."""
+
     id: int
     name: Optional[str] = None
     short_name: Optional[str] = None
@@ -312,6 +396,8 @@ class YarnWeight(BaseModel):
 
 
 class AttributeGroup(BaseModel):
+    """A hierarchical group of pattern attributes; may contain child groups."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -320,6 +406,8 @@ class AttributeGroup(BaseModel):
 
 
 class FiberCategory(BaseModel):
+    """A fiber category in a parent–child hierarchy."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -327,6 +415,8 @@ class FiberCategory(BaseModel):
 
 
 class PatternCategory(BaseModel):
+    """A pattern category in a parent–child hierarchy."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -339,6 +429,8 @@ class PatternCategory(BaseModel):
 
 
 class Forum(BaseModel):
+    """A Ravelry discussion forum."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -347,6 +439,8 @@ class Forum(BaseModel):
 
 
 class Topic(BaseModel):
+    """A discussion thread within a forum."""
+
     id: int
     title: Optional[str] = None
     forum_id: Optional[int] = None
@@ -365,6 +459,8 @@ class Topic(BaseModel):
 
 
 class ForumPost(BaseModel):
+    """A single post within a forum topic."""
+
     id: int
     topic_id: Optional[int] = None
     topic: Optional[Topic] = None
@@ -380,11 +476,15 @@ class ForumPost(BaseModel):
 
 
 class ForumPreference(BaseModel):
+    """A user's preferred forum position setting."""
+
     position: Optional[int] = None
     forum: Optional[Forum] = None
 
 
 class ForumSet(BaseModel):
+    """A named set of forums (e.g. My Forums) with a selected list."""
+
     id: Optional[int] = None
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -399,6 +499,8 @@ class ForumSet(BaseModel):
 
 
 class SocialSite(BaseModel):
+    """A social networking site integrated with Ravelry."""
+
     id: int
     name: str
     active: Optional[bool] = None
@@ -406,6 +508,8 @@ class SocialSite(BaseModel):
 
 
 class UserSite(BaseModel):
+    """A user's account on an external social site."""
+
     id: int
     url: Optional[str] = None
     username: Optional[str] = None
@@ -413,6 +517,8 @@ class UserSite(BaseModel):
 
 
 class PatternAuthor(BaseModel):
+    """A pattern author (designer) profile."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -425,6 +531,8 @@ class PatternAuthor(BaseModel):
 
 
 class User(BaseModel):
+    """A Ravelry user profile."""
+
     id: int
     username: str
     first_name: Optional[str] = None
@@ -448,6 +556,8 @@ class User(BaseModel):
 
 
 class Shop(BaseModel):
+    """A local yarn shop with contact and location details."""
+
     id: Optional[int] = None
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -475,6 +585,8 @@ class Shop(BaseModel):
 
 
 class ShopCustomer(BaseModel):
+    """A shop's customer record linking a user to a shop."""
+
     id: Optional[int] = None
     shop: Optional[Shop] = None
     user_id: Optional[str] = None
@@ -491,6 +603,8 @@ class ShopCustomer(BaseModel):
 
 
 class Product(BaseModel):
+    """A purchasable product in a Ravelry store."""
+
     id: int
     title: Optional[str] = None
     sku: Optional[str] = None
@@ -501,6 +615,8 @@ class Product(BaseModel):
 
 
 class ProductAttachment(BaseModel):
+    """A downloadable file attachment for a purchased product."""
+
     id: int
     product_id: Optional[int] = None
     language_id: Optional[int] = None
@@ -508,6 +624,8 @@ class ProductAttachment(BaseModel):
 
 
 class Delivery(BaseModel):
+    """A delivery of purchased products to a buyer."""
+
     id: int
     created_at: Optional[datetime] = None
     emailed_at: Optional[datetime] = None
@@ -515,6 +633,8 @@ class Delivery(BaseModel):
 
 
 class CartItem(BaseModel):
+    """A single item in a store shopping cart."""
+
     id: int
     cart_id: Optional[int] = None
     currency: Optional[str] = None
@@ -522,6 +642,8 @@ class CartItem(BaseModel):
 
 
 class Cart(BaseModel):
+    """A store shopping cart containing one or more items."""
+
     id: int
     store_id: Optional[int] = None
     currency: Optional[str] = None
@@ -529,6 +651,8 @@ class Cart(BaseModel):
 
 
 class CombinedCart(BaseModel):
+    """An aggregated cart spanning multiple stores for a shop customer."""
+
     id: int
     shop_customer: Optional[ShopCustomer] = None
     created_by_user_id: Optional[int] = None
@@ -538,6 +662,8 @@ class CombinedCart(BaseModel):
 
 
 class InStoreSale(BaseModel):
+    """An in-store point-of-sale transaction."""
+
     id: int
     seller_store_name: Optional[str] = None
     invoice: Optional[Invoice] = None
@@ -550,6 +676,8 @@ class InStoreSale(BaseModel):
 
 
 class PatternSource(BaseModel):
+    """A publication or website that is a source for patterns."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -565,6 +693,8 @@ class PatternSource(BaseModel):
 
 
 class Store(BaseModel):
+    """A Ravelry digital store operated by a business or designer."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -575,6 +705,8 @@ class Store(BaseModel):
 
 
 class Printing(BaseModel):
+    """Links a pattern to a pattern source with publication metadata."""
+
     id: int
     pattern_id: Optional[int] = None
     pattern_not_available: Optional[bool] = None
@@ -589,6 +721,8 @@ class Printing(BaseModel):
 
 
 class Colorway(BaseModel):
+    """A named colour variant of a yarn."""
+
     id: int
     name: Optional[str] = None
     code: Optional[str] = None
@@ -600,6 +734,8 @@ class Colorway(BaseModel):
 
 
 class YarnFiber(BaseModel):
+    """A fiber component of a yarn blend with percentage and type."""
+
     id: int
     percentage: Optional[int] = None
     fiber_category: Optional[FiberCategory] = None
@@ -607,6 +743,8 @@ class YarnFiber(BaseModel):
 
 
 class YarnCountry(BaseModel):
+    """Shop availability statistics for a yarn in a specific country."""
+
     id: int
     yarn_id: Optional[int] = None
     country_id: Optional[int] = None
@@ -618,6 +756,8 @@ class YarnCountry(BaseModel):
 
 
 class YarnProvenance(BaseModel):
+    """Origin provenance record for a yarn (country, phase, description)."""
+
     id: int
     yarn_id: Optional[int] = None
     yarn_phase_id: Optional[int] = None
@@ -629,6 +769,8 @@ class YarnProvenance(BaseModel):
 
 
 class Pack(BaseModel):
+    """A yarn pack associated with a stash or project entry."""
+
     id: int
     yarn_id: Optional[int] = None
     yarn_name: Optional[str] = None
@@ -640,6 +782,8 @@ class Pack(BaseModel):
 
 
 class Yarn(BaseModel):
+    """A yarn with weight, fibre, gauge, and availability details."""
+
     id: int
     name: str
     permalink: Optional[str] = None
@@ -675,6 +819,8 @@ class Yarn(BaseModel):
 
 
 class ComponentYarn(BaseModel):
+    """A yarn component used within a multi-yarn pattern."""
+
     id: int
     pattern_id: Optional[int] = None
     yarn_id: Optional[int] = None
@@ -682,6 +828,8 @@ class ComponentYarn(BaseModel):
 
 
 class DraftNeedleSize(BaseModel):
+    """A needle size requirement on a draft pattern."""
+
     id: int
     draft_pattern_id: Optional[int] = None
     hook: Optional[bool] = None
@@ -689,12 +837,16 @@ class DraftNeedleSize(BaseModel):
 
 
 class DraftPattern(BaseModel):
+    """A pattern draft not yet published to the Ravelry library."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
 
 
 class DraftPatternSource(BaseModel):
+    """Publication source details for a draft pattern."""
+
     id: int
     draft_pattern_id: Optional[int] = None
     pattern_source_id: Optional[int] = None
@@ -719,6 +871,8 @@ class DraftPatternSource(BaseModel):
 
 
 class DraftPatternYarn(BaseModel):
+    """A yarn associated with a draft pattern."""
+
     id: int
     draft_pattern_id: Optional[int] = None
     yarn_id: Optional[int] = None
@@ -730,6 +884,8 @@ class DraftPatternYarn(BaseModel):
 
 
 class DraftComponentYarn(BaseModel):
+    """A component yarn on a draft pattern."""
+
     id: int
     draft_pattern_id: Optional[int] = None
     created_at: Optional[datetime] = None
@@ -737,6 +893,8 @@ class DraftComponentYarn(BaseModel):
 
 
 class DraftErrataLink(BaseModel):
+    """A URL linking to errata or corrections for a draft pattern."""
+
     id: int
     draft_pattern_id: Optional[int] = None
     url: Optional[str] = None
@@ -750,10 +908,14 @@ class DraftErrataLink(BaseModel):
 
 
 class FiberPack(BaseModel):
+    """A single fiber pack record in a fiber stash entry."""
+
     id: int
 
 
 class FiberStash(BaseModel):
+    """A fiber (non-yarn) stash entry owned by a user."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -773,6 +935,8 @@ class FiberStash(BaseModel):
 
 
 class Stash(BaseModel):
+    """A yarn stash entry owned by a user."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -801,6 +965,8 @@ class Stash(BaseModel):
 
 
 class QueuedStash(BaseModel):
+    """Links a stash entry to a queued project."""
+
     id: int
     queued_project_id: Optional[int] = None
     stash_id: Optional[int] = None
@@ -810,6 +976,8 @@ class QueuedStash(BaseModel):
 
 
 class UnifiedStash(BaseModel):
+    """A unified stash entry that may be a yarn stash or fiber stash."""
+
     stash: Optional[Stash] = None
     fiber_stash: Optional[FiberStash] = None
 
@@ -820,6 +988,8 @@ class UnifiedStash(BaseModel):
 
 
 class Pattern(BaseModel):
+    """A knitting or crochet pattern with gauge, pricing, and rating data."""
+
     id: int
     name: str
     permalink: Optional[str] = None
@@ -855,6 +1025,8 @@ class Pattern(BaseModel):
 
 
 class Project(BaseModel):
+    """A user's knitting or crochet project linked to a pattern."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -903,6 +1075,8 @@ class Project(BaseModel):
 
 
 class VolumeAttachment(BaseModel):
+    """A downloadable file attachment for a library volume."""
+
     product_attachment_id: Optional[int] = None
     filename: Optional[str] = None
     bytes: Optional[int] = None
@@ -914,6 +1088,8 @@ class VolumeAttachment(BaseModel):
 
 
 class Volume(BaseModel):
+    """A library volume (purchased or gifted pattern collection)."""
+
     id: int
     title: Optional[str] = None
     pattern_id: Optional[int] = None
@@ -945,6 +1121,8 @@ class Volume(BaseModel):
 
 
 class Bundle(BaseModel):
+    """A curated collection of patterns, yarns, or projects."""
+
     id: int
     name: Optional[str] = None
     notes: Optional[str] = None
@@ -955,6 +1133,8 @@ class Bundle(BaseModel):
 
 
 class BundledItem(BaseModel):
+    """A single item within a bundle."""
+
     id: int
     bundle_id: Optional[int] = None
     item_id: Optional[int] = None
@@ -963,6 +1143,8 @@ class BundledItem(BaseModel):
 
 
 class Bookmark(BaseModel):
+    """A favourite bookmark linking a user to a pattern, yarn, or project."""
+
     id: int
     type: Optional[str] = None
     tag_list: Optional[str] = None
@@ -972,6 +1154,8 @@ class Bookmark(BaseModel):
 
 
 class Collection(BaseModel):
+    """A named collection of tagged items."""
+
     id: int
     title: Optional[str] = None
     permalink: Optional[str] = None
@@ -979,6 +1163,8 @@ class Collection(BaseModel):
 
 
 class Group(BaseModel):
+    """A Ravelry community group with an associated forum."""
+
     id: int
     name: Optional[str] = None
     permalink: Optional[str] = None
@@ -997,6 +1183,8 @@ class Group(BaseModel):
 
 
 class Comment(BaseModel):
+    """A comment left on a project, stash, or forum post."""
+
     id: int
     comment_html: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -1005,6 +1193,8 @@ class Comment(BaseModel):
 
 
 class Activity(BaseModel):
+    """A social activity event from a user's friend feed."""
+
     id: int
     activity_type_id: Optional[int] = None
     activity_type_key: Optional[str] = None
@@ -1018,6 +1208,8 @@ class Activity(BaseModel):
 
 
 class Message(BaseModel):
+    """A private message between two Ravelry users."""
+
     id: int
     subject: Optional[str] = None
     content_html: Optional[str] = None
@@ -1033,6 +1225,8 @@ class Message(BaseModel):
 
 
 class Friendship(BaseModel):
+    """A friendship link between two Ravelry users."""
+
     id: int
     friend_id: Optional[int] = None
     friend_user_id: Optional[int] = None

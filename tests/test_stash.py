@@ -1,3 +1,6 @@
+"""Tests for :class:`~ravelpy.resources.stash.Stash` resource methods."""
+
+
 def test_list_stash(client, mock_api):
     mock_api.get("/people/foo/stash/list.json").respond(200, json={"stash": []})
     client.stash.list(username="foo")
