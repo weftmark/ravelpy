@@ -8,6 +8,7 @@ from .models import (
     Bundle,
     BundledItem,
     ColorFamily,
+    Colorway,
     Comment,
     Craft,
     Delivery,
@@ -162,6 +163,7 @@ class PatternSourcesSearchResponse(BaseModel):
 
 class YarnResponse(BaseModel):
     yarn: Yarn
+    colorways: Optional[list[Colorway]] = None  # present when include="colorways"
 
 
 class YarnsMultiResponse(BaseModel):

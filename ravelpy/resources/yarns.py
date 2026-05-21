@@ -3,8 +3,8 @@ from .base import ETagResult, Resource
 
 
 class Yarns(Resource):
-    def show(self, yarn_id: int, etag: Optional[str] = None) -> ETagResult:
-        return self._get(f"/yarns/{yarn_id}.json", etag=etag)
+    def show(self, yarn_id: int, include: Optional[str] = None, etag: Optional[str] = None) -> ETagResult:
+        return self._get(f"/yarns/{yarn_id}.json", {"include": include}, etag=etag)
 
     def list(self, ids: str, etag: Optional[str] = None) -> ETagResult:
         return self._get("/yarns.json", {"ids": ids}, etag=etag)
