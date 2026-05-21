@@ -14,9 +14,28 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator
+
+
+def _coerce_ravelry_datetime(v: Any) -> Any:
+    """Normalize Ravelry's ``YYYY/MM/DD HH:MM:SS ±HHMM`` to ISO 8601."""
+    if not isinstance(v, str):
+        return v
+    # Replace date-part slashes: "2026/05/21" -> "2026-05-21"
+    v = v[:10].replace("/", "-") + v[10:]
+    # Insert colon in bare numeric timezone offset: " -0400" -> "-04:00"
+    parts = v.rsplit(" ", 1)
+    if len(parts) == 2:
+        body, tz = parts
+        if len(tz) == 5 and tz[0] in "+-" and tz[1:].isdigit():
+            tz = f"{tz[:3]}:{tz[3:]}"
+        v = f"{body}{tz}"
+    return v
+
+
+RavelryDatetime = Annotated[datetime, BeforeValidator(_coerce_ravelry_datetime)]
 
 # ---------------------------------------------------------------------------
 # Leaf / primitive models (no nested model dependencies)
@@ -72,8 +91,8 @@ class DownloadLink(BaseModel):
     """A time-limited URL for downloading purchased content."""
 
     url: Optional[str] = None
-    activated_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
+    activated_at: Optional[RavelryDatetime] = None
+    expires_at: Optional[RavelryDatetime] = None
 
 
 class FiberAttributeGroup(BaseModel):
@@ -215,8 +234,8 @@ class PatternLanguage(BaseModel):
     id: int
     pattern_id: Optional[int] = None
     language_id: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class PatternNeedleSize(BaseModel):
@@ -284,7 +303,7 @@ class ProductNotification(BaseModel):
 
     id: int
     product_id: Optional[int] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
     message: Optional[str] = None
     message_html: Optional[str] = None
     version: Optional[str] = None
@@ -313,8 +332,8 @@ class Saleable(BaseModel):
     product_id: Optional[int] = None
     saleable_id: Optional[int] = None
     saleable_type: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class SavedSearch(BaseModel):
@@ -326,10 +345,10 @@ class SavedSearch(BaseModel):
     search_path: Optional[str] = None
     search_parameters: Optional[Any] = None
     subscribed: Optional[bool] = None
-    subscription_updated_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    last_loaded: Optional[datetime] = None
+    subscription_updated_at: Optional[RavelryDatetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
+    last_loaded: Optional[RavelryDatetime] = None
 
 
 class ShopSchedule(BaseModel):
@@ -338,8 +357,8 @@ class ShopSchedule(BaseModel):
     day_of_week: Optional[int] = None
     day_name: Optional[str] = None
     closed: Optional[bool] = None
-    opening_time: Optional[datetime] = None
-    closing_time: Optional[datetime] = None
+    opening_time: Optional[RavelryDatetime] = None
+    closing_time: Optional[RavelryDatetime] = None
 
 
 class StashStatus(BaseModel):
@@ -357,8 +376,8 @@ class Tool(BaseModel):
     make: Optional[str] = None
     model: Optional[str] = None
     notes: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class YarnAttributeGroup(BaseModel):
@@ -446,8 +465,8 @@ class Topic(BaseModel):
     forum_id: Optional[int] = None
     forum_posts_count: Optional[int] = None
     forum_images_count: Optional[int] = None
-    created_at: Optional[datetime] = None
-    replied_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    replied_at: Optional[RavelryDatetime] = None
     archived: Optional[bool] = None
     locked: Optional[bool] = None
     sticky: Optional[bool] = None
@@ -470,8 +489,8 @@ class ForumPost(BaseModel):
     reply_count: Optional[int] = None
     deleted: Optional[bool] = None
     editable: Optional[bool] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
     user: Optional[Any] = None
 
 
@@ -594,7 +613,7 @@ class ShopCustomer(BaseModel):
     name: Optional[str] = None
     email_address: Optional[str] = None
     customer_reference: Optional[str] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
 
 
 # ---------------------------------------------------------------------------
@@ -627,8 +646,8 @@ class Delivery(BaseModel):
     """A delivery of purchased products to a buyer."""
 
     id: int
-    created_at: Optional[datetime] = None
-    emailed_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    emailed_at: Optional[RavelryDatetime] = None
     products: Optional[list[Product]] = None
 
 
@@ -657,8 +676,8 @@ class CombinedCart(BaseModel):
     shop_customer: Optional[ShopCustomer] = None
     created_by_user_id: Optional[int] = None
     cart_items: Optional[list[CartItem]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class InStoreSale(BaseModel):
@@ -711,7 +730,7 @@ class Printing(BaseModel):
     pattern_id: Optional[int] = None
     pattern_not_available: Optional[bool] = None
     primary_source: Optional[bool] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
     pattern_source: Optional[PatternSource] = None
 
 
@@ -864,9 +883,9 @@ class DraftPatternSource(BaseModel):
     out_of_print: Optional[bool] = None
     ravelry_ebook: Optional[bool] = None
     ravelry_store: Optional[bool] = None
-    published: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    published: Optional[RavelryDatetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
     pattern_source: Optional[PatternSource] = None
 
 
@@ -879,8 +898,8 @@ class DraftPatternYarn(BaseModel):
     yarn_name: Optional[str] = None
     yarn: Optional[Yarn] = None
     yarn_weight: Optional[YarnWeight] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class DraftComponentYarn(BaseModel):
@@ -888,8 +907,8 @@ class DraftComponentYarn(BaseModel):
 
     id: int
     draft_pattern_id: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class DraftErrataLink(BaseModel):
@@ -898,8 +917,8 @@ class DraftErrataLink(BaseModel):
     id: int
     draft_pattern_id: Optional[int] = None
     url: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 # ---------------------------------------------------------------------------
@@ -930,8 +949,8 @@ class FiberStash(BaseModel):
     user_id: Optional[int] = None
     comments_count: Optional[int] = None
     favorites_count: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class Stash(BaseModel):
@@ -958,8 +977,8 @@ class Stash(BaseModel):
     tag_names: Optional[list[str]] = None
     user: Optional[User] = None
     user_id: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
     comments_count: Optional[int] = None
     favorites_count: Optional[int] = None
 
@@ -971,8 +990,8 @@ class QueuedStash(BaseModel):
     queued_project_id: Optional[int] = None
     stash_id: Optional[int] = None
     stash: Optional[Stash] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 class UnifiedStash(BaseModel):
@@ -1012,7 +1031,7 @@ class Pattern(BaseModel):
     download_count: Optional[int] = None
     queued_projects_count: Optional[int] = None
     published: Optional[date] = None
-    updated_at: Optional[datetime] = None
+    updated_at: Optional[RavelryDatetime] = None
     notes: Optional[str] = None
     notes_html: Optional[str] = None
     type_name: Optional[str] = None
@@ -1061,8 +1080,8 @@ class Project(BaseModel):
     tag_names: Optional[list[str]] = None
     user: Optional[User] = None
     user_id: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
     comments_count: Optional[int] = None
     favorites_count: Optional[int] = None
     photos_count: Optional[int] = None
@@ -1111,8 +1130,8 @@ class Volume(BaseModel):
     volume_status_id: Optional[int] = None
     unapplied_updates: Optional[list[ProductNotification]] = None
     volume_attachments: Optional[list[VolumeAttachment]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
+    updated_at: Optional[RavelryDatetime] = None
 
 
 # ---------------------------------------------------------------------------
@@ -1150,7 +1169,7 @@ class Bookmark(BaseModel):
     tag_list: Optional[str] = None
     comment: Optional[str] = None
     favorited: Optional[Any] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
 
 
 class Collection(BaseModel):
@@ -1174,7 +1193,7 @@ class Group(BaseModel):
     forum_id: Optional[int] = None
     forum: Optional[Forum] = None
     mature: Optional[bool] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
 
 
 # ---------------------------------------------------------------------------
@@ -1187,7 +1206,7 @@ class Comment(BaseModel):
 
     id: int
     comment_html: Optional[str] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
     user: Optional[User] = None
     highlighted_project: Optional[Project] = None
 
@@ -1198,7 +1217,7 @@ class Activity(BaseModel):
     id: int
     activity_type_id: Optional[int] = None
     activity_type_key: Optional[str] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
     title: Optional[str] = None
     descriptive_title: Optional[str] = None
     target_id: Optional[int] = None
@@ -1218,8 +1237,8 @@ class Message(BaseModel):
     parent_message_id: Optional[int] = None
     read_message: Optional[bool] = None
     replied: Optional[bool] = None
-    replied_at: Optional[datetime] = None
-    sent_at: Optional[datetime] = None
+    replied_at: Optional[RavelryDatetime] = None
+    sent_at: Optional[RavelryDatetime] = None
     sender: Optional[User] = None
     recipient: Optional[User] = None
 
@@ -1232,7 +1251,7 @@ class Friendship(BaseModel):
     friend_user_id: Optional[int] = None
     friend_username: Optional[str] = None
     friend_avatar: Optional[dict[str, Any]] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[RavelryDatetime] = None
     tag_names: Optional[list[str]] = None
     friend_user: Optional[User] = None
 
