@@ -5,14 +5,14 @@ from ravelpy import RavelryAPIError
 
 def test_get_current_user(client, mock_api):
     mock_api.get("/current_user.json").respond(200, json={"user": {"username": "testuser"}})
-    data, _etag = client.people.me()
-    assert data["user"]["username"] == "testuser"
+    _data, _etag, _raw = client.people.me()
+    assert _raw["user"]["username"] == "testuser"
 
 
 def test_get_person(client, mock_api):
     mock_api.get("/people/foo.json").respond(200, json={"user": {"username": "foo"}})
-    data, _etag = client.people.show(username="foo")
-    assert data["user"]["username"] == "foo"
+    _data, _etag, _raw = client.people.show(username="foo")
+    assert _raw["user"]["username"] == "foo"
 
 
 def test_get_person_comments(client, mock_api):

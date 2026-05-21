@@ -1,5 +1,6 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import GroupsResponse
 
 
 class Groups(Resource):
@@ -9,5 +10,5 @@ class Groups(Resource):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
-        return self._get("/groups/search.json", {"query": query, "page": page, "page_size": page_size}, etag=etag)
+    ) -> ApiResult:
+        return self._get("/groups/search.json", {"query": query, "page": page, "page_size": page_size}, etag=etag, model=GroupsResponse)

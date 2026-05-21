@@ -60,10 +60,10 @@ COMPANY_QUERY = "brassard"
 print(f"\n{'=' * 64}")
 print(f"  STEP 1 -- yarn company search: {COMPANY_QUERY!r}")
 
-data, _ = client.yarn_companies.search(query=COMPANY_QUERY)
-_print_raw(data)
+_parsed, _, raw = client.yarn_companies.search(query=COMPANY_QUERY)
+_print_raw(raw)
 
-companies = data.get("yarn_companies", [])
+companies = raw.get("yarn_companies", [])
 print(f"\n  {len(companies)} company result(s):")
 for co in companies:
     print(
@@ -81,11 +81,11 @@ YARN_QUERY = "brassard 8/2 unmercerized cotton"
 print(f"\n{'=' * 64}")
 print(f"  STEP 2 -- yarn search: {YARN_QUERY!r}")
 
-data, _ = client.yarns.search(query=YARN_QUERY)
-_print_raw(data)
+_parsed, _, raw = client.yarns.search(query=YARN_QUERY)
+_print_raw(raw)
 
-yarns = data.get("yarns", [])
-pager = data.get("paginator", {})
+yarns = raw.get("yarns", [])
+pager = raw.get("paginator", {})
 print(
     f"\n  {pager.get('results', len(yarns))} total result(s)"
     f"  (page {pager.get('page')}/{pager.get('page_count')},"
@@ -113,11 +113,11 @@ else:
     print(f"\n{'=' * 64}")
     print(f"  STEP 3 -- yarn detail + colorways: [{yarn_id}] {first['name']}")
 
-    data, _ = client.yarns.show(yarn_id=yarn_id, include="colorways")
-    _print_raw(data)
+    _parsed, _, raw = client.yarns.show(yarn_id=yarn_id, include="colorways")
+    _print_raw(raw)
 
-    yarn      = data.get("yarn", {})
-    colorways = data.get("colorways", [])
+    yarn      = raw.get("yarn", {})
+    colorways = raw.get("colorways", [])
 
     # Fiber content
     fibers = yarn.get("yarn_fibers", [])

@@ -1,13 +1,14 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import CommentsResponse, YarnResponse, YarnsMultiResponse, YarnSearchResponse
 
 
 class Yarns(Resource):
-    def show(self, yarn_id: int, include: Optional[str] = None, etag: Optional[str] = None) -> ETagResult:
-        return self._get(f"/yarns/{yarn_id}.json", {"include": include}, etag=etag)
+    def show(self, yarn_id: int, include: Optional[str] = None, etag: Optional[str] = None) -> ApiResult:
+        return self._get(f"/yarns/{yarn_id}.json", {"include": include}, etag=etag, model=YarnResponse)
 
-    def list(self, ids: str, etag: Optional[str] = None) -> ETagResult:
-        return self._get("/yarns.json", {"ids": ids}, etag=etag)
+    def list(self, ids: str, etag: Optional[str] = None) -> ApiResult:
+        return self._get("/yarns.json", {"ids": ids}, etag=etag, model=YarnsMultiResponse)
 
     def search(
         self,
@@ -22,13 +23,13 @@ class Yarns(Resource):
         discontinued: Optional[bool] = None,
         personal_attributes: Optional[str] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
+    ) -> ApiResult:
         return self._get("/yarns/search.json", {
             "query": query, "page": page, "page_size": page_size, "sort": sort,
             "weight": weight, "fiber_min_weight_pct": fiber_min_weight_pct,
             "color_family_id": color_family_id, "fiber_category_id": fiber_category_id,
             "discontinued": discontinued, "personal_attributes": personal_attributes,
-        }, etag=etag)
+        }, etag=etag, model=YarnSearchResponse)
 
     def comments(
         self,
@@ -37,5 +38,5 @@ class Yarns(Resource):
         page_size: Optional[int] = None,
         sort: Optional[str] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
-        return self._get(f"/yarns/{yarn_id}/comments.json", {"page": page, "page_size": page_size, "sort": sort}, etag=etag)
+    ) -> ApiResult:
+        return self._get(f"/yarns/{yarn_id}/comments.json", {"page": page, "page_size": page_size, "sort": sort}, etag=etag, model=CommentsResponse)

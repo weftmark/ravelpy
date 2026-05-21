@@ -1,5 +1,6 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import MessageResponse, MessagesResponse
 
 
 class Messages(Resource):
@@ -8,8 +9,8 @@ class Messages(Resource):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
-        return self._get("/messages/list.json", {"page": page, "page_size": page_size}, etag=etag)
+    ) -> ApiResult:
+        return self._get("/messages/list.json", {"page": page, "page_size": page_size}, etag=etag, model=MessagesResponse)
 
-    def show(self, message_id: int, etag: Optional[str] = None) -> ETagResult:
-        return self._get(f"/messages/{message_id}.json", etag=etag)
+    def show(self, message_id: int, etag: Optional[str] = None) -> ApiResult:
+        return self._get(f"/messages/{message_id}.json", etag=etag, model=MessageResponse)

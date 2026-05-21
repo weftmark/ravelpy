@@ -5,8 +5,8 @@ from ravelpy import RavelryAPIError
 
 def test_get_pattern(client, mock_api):
     mock_api.get("/patterns/456.json").respond(200, json={"pattern": {"id": 456}})
-    data, _etag = client.patterns.show(pattern_id=456)
-    assert data["pattern"]["id"] == 456
+    _data, _etag, _raw = client.patterns.show(pattern_id=456)
+    assert _raw["pattern"]["id"] == 456
 
 
 def test_get_patterns_multi(client, mock_api):

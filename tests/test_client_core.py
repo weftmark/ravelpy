@@ -46,5 +46,5 @@ def test_raises_ravelry_api_error_on_500(client, mock_api):
 def test_returns_parsed_json(client, mock_api):
     payload = {"pattern": {"id": 42, "name": "Test Pattern"}}
     mock_api.get("/patterns/42.json").respond(200, json=payload)
-    data, _etag = client.patterns.show(pattern_id=42)
-    assert data == payload
+    _data, _etag, _raw = client.patterns.show(pattern_id=42)
+    assert _raw == payload

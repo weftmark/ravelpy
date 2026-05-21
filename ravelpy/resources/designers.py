@@ -1,5 +1,5 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
 
 
 class Designers(Resource):
@@ -8,5 +8,5 @@ class Designers(Resource):
         designer_id: int,
         include: Optional[str] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
+    ) -> ApiResult:
         return self._get(f"/designers/{designer_id}.json", {"include": include}, etag=etag)

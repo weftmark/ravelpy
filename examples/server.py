@@ -169,9 +169,9 @@ ClientDep = Annotated[RavelryClient, Depends(client)]
 
 
 def _handle(fn):
-    """Wrap a client call, unpack the (data, etag) tuple, and convert RavelryAPIError to HTTPException."""
+    """Wrap a client call, unpack the (parsed, etag, raw) tuple, and convert RavelryAPIError to HTTPException."""
     try:
-        data, _etag = fn()
+        data, _etag, _raw = fn()
         return data
     except RavelryAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

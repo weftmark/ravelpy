@@ -9,21 +9,21 @@ def test_200_returns_data_and_etag(client, mock_api):
         json={"pattern": {"id": 1}},
         headers={"ETag": '"abc123"'},
     )
-    data, etag = client.patterns.show(pattern_id=1)
-    assert data == {"pattern": {"id": 1}}
+    _data, etag, _raw = client.patterns.show(pattern_id=1)
+    assert _raw == {"pattern": {"id": 1}}
     assert etag == '"abc123"'
 
 
 def test_200_without_etag_header_returns_none_etag(client, mock_api):
     mock_api.get("/patterns/1.json").respond(200, json={"pattern": {"id": 1}})
-    data, etag = client.patterns.show(pattern_id=1)
+    data, etag, _raw = client.patterns.show(pattern_id=1)
     assert data is not None
     assert etag is None
 
 
 def test_304_returns_none_data_with_original_etag(client, mock_api):
     mock_api.get("/patterns/1.json").respond(304)
-    data, etag = client.patterns.show(pattern_id=1, etag='"abc123"')
+    data, etag, _raw = client.patterns.show(pattern_id=1, etag='"abc123"')
     assert data is None
     assert etag == '"abc123"'
 
@@ -48,11 +48,11 @@ def test_etag_round_trip_yarn(client, mock_api):
         json={"yarn": {"id": 5}},
         headers={"ETag": '"xyz999"'},
     )
-    data, etag = client.yarns.show(yarn_id=5)
+    _data, etag, _raw = client.yarns.show(yarn_id=5)
     assert etag == '"xyz999"'
 
     mock_api.get("/yarns/5.json").respond(304)
-    data2, etag2 = client.yarns.show(yarn_id=5, etag=etag)
+    data2, etag2, _raw2 = client.yarns.show(yarn_id=5, etag=etag)
     assert data2 is None
     assert etag2 == '"xyz999"'
 
@@ -63,10 +63,10 @@ def test_etag_round_trip_reference_data(client, mock_api):
         json={"yarn_weights": []},
         headers={"ETag": '"weights-v1"'},
     )
-    data, etag = client.yarn_attributes.weights()
+    _data, etag, _raw = client.yarn_attributes.weights()
     assert etag == '"weights-v1"'
 
     mock_api.get("/yarn_weights.json").respond(304)
-    data2, etag2 = client.yarn_attributes.weights(etag=etag)
+    data2, etag2, _raw2 = client.yarn_attributes.weights(etag=etag)
     assert data2 is None
     assert etag2 == '"weights-v1"'

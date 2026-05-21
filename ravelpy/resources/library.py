@@ -1,5 +1,6 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import LibraryResponse
 
 
 class Library(Resource):
@@ -10,9 +11,10 @@ class Library(Resource):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
+    ) -> ApiResult:
         return self._get(
             f"/people/{username}/library/search.json",
             {"query": query, "page": page, "page_size": page_size},
             etag=etag,
+            model=LibraryResponse,
         )

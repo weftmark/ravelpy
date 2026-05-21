@@ -1,5 +1,6 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import BundleResponse, BundlesResponse
 
 
 class Bundles(Resource):
@@ -11,11 +12,11 @@ class Bundles(Resource):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
+    ) -> ApiResult:
         return self._get(f"/people/{username}/bundles/list.json", {
             "owner_types": owner_types, "query": query,
             "page": page, "page_size": page_size,
-        }, etag=etag)
+        }, etag=etag, model=BundlesResponse)
 
-    def show(self, username: str, bundle_id: int, etag: Optional[str] = None) -> ETagResult:
-        return self._get(f"/people/{username}/bundles/{bundle_id}.json", etag=etag)
+    def show(self, username: str, bundle_id: int, etag: Optional[str] = None) -> ApiResult:
+        return self._get(f"/people/{username}/bundles/{bundle_id}.json", etag=etag, model=BundleResponse)

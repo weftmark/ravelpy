@@ -1,5 +1,5 @@
 from .app import App
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
 from .bundled_items import BundledItems
 from .bundles import Bundles
 from .deliveries import Deliveries
@@ -40,7 +40,7 @@ from .yarn_companies import YarnCompanies
 from .yarns import Yarns
 
 __all__ = [
-    "ETagResult",
+    "ApiResult",
     "Resource",
     "App",
     "BundledItems",

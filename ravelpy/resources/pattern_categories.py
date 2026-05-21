@@ -1,7 +1,8 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import PatternCategoriesResponse
 
 
 class PatternCategories(Resource):
-    def list(self, etag: Optional[str] = None) -> ETagResult:
-        return self._get("/pattern_categories/list.json", etag=etag)
+    def list(self, etag: Optional[str] = None) -> ApiResult:
+        return self._get("/pattern_categories/list.json", etag=etag, model=PatternCategoriesResponse)

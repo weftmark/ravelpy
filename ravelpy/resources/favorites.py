@@ -1,5 +1,6 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import FavoriteResponse, FavoritesResponse
 
 
 class Favorites(Resource):
@@ -12,11 +13,11 @@ class Favorites(Resource):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
+    ) -> ApiResult:
         return self._get(f"/people/{username}/favorites/list.json", {
             "types": types, "query": query, "tag": tag,
             "page": page, "page_size": page_size,
-        }, etag=etag)
+        }, etag=etag, model=FavoritesResponse)
 
-    def show(self, username: str, favorite_id: int, etag: Optional[str] = None) -> ETagResult:
-        return self._get(f"/people/{username}/favorites/{favorite_id}.json", etag=etag)
+    def show(self, username: str, favorite_id: int, etag: Optional[str] = None) -> ApiResult:
+        return self._get(f"/people/{username}/favorites/{favorite_id}.json", etag=etag, model=FavoriteResponse)

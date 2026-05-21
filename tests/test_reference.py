@@ -3,20 +3,20 @@ import pytest
 
 def test_get_color_families(client, mock_api):
     mock_api.get("/color_families.json").respond(200, json={"color_families": []})
-    data, _etag = client.extras.color_families()
-    assert "color_families" in data
+    _data, _etag, _raw = client.extras.color_families()
+    assert "color_families" in _raw
 
 
 def test_get_yarn_weights(client, mock_api):
     mock_api.get("/yarn_weights.json").respond(200, json={"yarn_weights": []})
-    data, _etag = client.yarn_attributes.weights()
-    assert "yarn_weights" in data
+    _data, _etag, _raw = client.yarn_attributes.weights()
+    assert "yarn_weights" in _raw
 
 
 def test_get_fiber_categories(client, mock_api):
     mock_api.get("/fiber_categories.json").respond(200, json={"fiber_categories": []})
-    data, _etag = client.fiber_attribute_groups.categories()
-    assert "fiber_categories" in data
+    _data, _etag, _raw = client.fiber_attribute_groups.categories()
+    assert "fiber_categories" in _raw
 
 
 def test_get_fiber_attributes(client, mock_api):

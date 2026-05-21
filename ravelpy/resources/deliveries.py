@@ -1,5 +1,6 @@
 from typing import Optional
-from .base import ETagResult, Resource
+from .base import ApiResult, Resource
+from ..responses import DeliveriesResponse
 
 
 class Deliveries(Resource):
@@ -8,5 +9,5 @@ class Deliveries(Resource):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
-    ) -> ETagResult:
-        return self._get("/deliveries/list.json", {"page": page, "page_size": page_size}, etag=etag)
+    ) -> ApiResult:
+        return self._get("/deliveries/list.json", {"page": page, "page_size": page_size}, etag=etag, model=DeliveriesResponse)

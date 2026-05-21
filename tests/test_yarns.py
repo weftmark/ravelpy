@@ -8,8 +8,8 @@ BASE = "https://api.ravelry.com"
 
 def test_get_yarn_hits_correct_url(client, mock_api):
     mock_api.get("/yarns/123.json").respond(200, json={"yarn": {"id": 123}})
-    data, _etag = client.yarns.show(yarn_id=123)
-    assert data["yarn"]["id"] == 123
+    _data, _etag, _raw = client.yarns.show(yarn_id=123)
+    assert _raw["yarn"]["id"] == 123
 
 
 def test_get_yarns_multi(client, mock_api):
