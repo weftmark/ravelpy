@@ -100,11 +100,45 @@ class RavelryClient:
         Args:
             username: Ravelry username for HTTP Basic Auth.  For a read-only
                 personal key this is the ``read-xxxx`` string from the developer
-                portal; for OAuth 2.0 pass the authorizing user's username.
-            api_key:  Corresponding API key or OAuth access token used as the
-                Basic Auth password.
+                portal.
+            api_key:  Corresponding API key used as the Basic Auth password.
         """
         session = httpx.Client(auth=(username, api_key), headers={"Accept": "application/json"})
+        self._setup_resources(session)
+
+    @classmethod
+    def from_oauth_token(cls, access_token: str) -> "RavelryClient":
+        """Create a client that authenticates with a Ravelry OAuth 2.0 access token.
+
+        Sends ``Authorization: Bearer <token>`` on every request instead of Basic Auth.
+        Obtain the token by running ``scripts/oauth_login.py`` or calling
+        :meth:`ravelpy.oauth.OAuthClient.local_flow`.
+
+        Args:
+            access_token: A valid Ravelry OAuth 2.0 access token.
+
+        Returns:
+            A fully initialised :class:`RavelryClient` using Bearer token auth.
+
+        Example::
+
+            from ravelpy import RavelryClient
+            from ravelpy.oauth import load_tokens
+            tokens = load_tokens(Path(".oauth_tokens.json"))
+            client = RavelryClient.from_oauth_token(tokens.access_token)
+            me, _, _ = client.people.me()
+        """
+        class _BearerAuth(httpx.Auth):
+            def auth_flow(self, request):
+                request.headers["Authorization"] = f"Bearer {access_token}"
+                yield request
+
+        instance = cls.__new__(cls)
+        session = httpx.Client(auth=_BearerAuth(), headers={"Accept": "application/json"})
+        instance._setup_resources(session)
+        return instance
+
+    def _setup_resources(self, session: httpx.Client) -> None:
         self.app = App(session)
         self.bundled_items = BundledItems(session)
         self.bundles = Bundles(session)

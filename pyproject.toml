@@ -46,3 +46,7 @@ Repository = "https://github.com/gx1400/ravelry-api"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ravelpy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"

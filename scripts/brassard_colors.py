@@ -3,7 +3,7 @@ Brassard yarn exploration script.
 
   python scripts/brassard_colors.py
 
-Loads credentials from .env in the repo root, then:
+Loads credentials from .env.developer.readonly in the repo root, then:
   1. Searches yarn companies for "brassard"
   2. Searches yarns for "brassard 8/2 unmercerized cotton"
   3. Fetches full yarn detail + colorways for the first match
@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 
 from ravelpy import RavelryClient
 
-load_dotenv(Path(__file__).parent.parent / ".env")
+load_dotenv(Path(__file__).parent.parent / ".env.developer.readonly")
 
 username = os.environ["RAVELRY_USERNAME"]
 api_key  = os.environ["RAVELRY_API_KEY"]

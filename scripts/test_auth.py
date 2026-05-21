@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Live API smoke test — validates auth tier requirements against real endpoints.
 
-Loads read-only Basic Auth credentials from .env and calls every endpoint in the
+Loads read-only Basic Auth credentials from .env.developer.readonly and calls every endpoint in the
 library.  Reports the actual HTTP status code and whether it matches the expected
 auth tier:
 
@@ -12,7 +12,7 @@ auth tier:
 Usage:
     python scripts/test_auth.py
 
-Credentials required in .env:
+Credentials required in .env.developer.readonly:
     RAVELRY_USERNAME=read-xxxx
     RAVELRY_API_KEY=your-key
 """
@@ -26,13 +26,13 @@ from typing import Optional
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent.parent / ".env")
+load_dotenv(Path(__file__).parent.parent / ".env.developer.readonly")
 
 USERNAME = os.environ.get("RAVELRY_USERNAME", "")
 API_KEY = os.environ.get("RAVELRY_API_KEY", "")
 
 if not USERNAME or not API_KEY:
-    sys.exit("RAVELRY_USERNAME and RAVELRY_API_KEY must be set in .env")
+    sys.exit("RAVELRY_USERNAME and RAVELRY_API_KEY must be set in .env.developer.readonly")
 
 BASE_URL = "https://api.ravelry.com"
 TEST_USER = "tester"  # placeholder username for user-scoped paths; auth result is what matters
