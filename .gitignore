@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 .oauth_tokens.json
+.oauth*
 
 # Python
 __pycache__/
