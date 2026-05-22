@@ -4,19 +4,33 @@ Complete list of all endpoints in the ravelpy library, showing the HTTP method, 
 which credential tier is required, and the HTTP status code observed in live testing
 with a read-only Basic Auth key.
 
-**Legend**
+## Legend
 
 | Tier            | Meaning                                                                      |
 |-----------------|------------------------------------------------------------------------------|
 | public          | Accessible with any valid developer credential, including the read-only key  |
 | authenticated   | Requires a personal key or OAuth 2.0; read-only key returns 403 or 302      |
 
-**Test conditions:**
+## Test conditions
+
 - Credential: read-only Basic Auth key (`RAVELRY_USERNAME` / `RAVELRY_API_KEY` from `.env`)
 - Placeholder username `tester` used for user-scoped paths
-- Placeholder IDs of `1` or `95245` used for resource-scoped paths
+- Placeholder IDs of `1`, `95245`, or `7529294` used for resource-scoped paths
 - `public` pass: status code is 200, 304, 404, or 500 (any non-auth-rejection)
 - `authenticated` pass: status code is 401, 403, or 302
+
+### OAuth scope testing
+
+Endpoints marked `authenticated` have also been tested across isolated OAuth scope
+combinations using `scripts/probe_endpoint.py`. Results are in `docs/authentication.md`
+scope matrix. Key findings:
+
+- `patterns.comments` and `patterns.projects`: confirmed 200 with any valid OAuth token
+  (all six isolated scopes); use a valid pattern ID (ID 1 does not exist)
+- `messages.list`: returns 403 under any OAuth scope; requires personal key
+- `stores.list`: requires `patternstore-read` scope (or personal key)
+- Combined multi-scope tokens return 403 on some endpoints where isolated single-scope
+  tokens return 200 — a Ravelry quirk; see `TODO.md`
 
 ---
 

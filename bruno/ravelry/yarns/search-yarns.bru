@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: https://api.ravelry.com/yarns/search.json
+  url: https://api.ravelry.com/yarns/search.json?query=brassard
   body: none
   auth: inherit
 }
 
 params:query {
-  ~query: merino
+  query: brassard
   ~page: 1
   ~page_size: 25
   ~sort: best

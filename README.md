@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 
-Read-only Python client for the [Ravelry REST API](https://www.ravelry.com/api), authenticated with developer credentials (HTTP Basic Auth).
+Python client for the [Ravelry REST API](https://www.ravelry.com/api), supporting read-only Basic Auth (public catalog data), personal account keys (full authenticated access), and OAuth 2.0 (scoped delegated access).
 
 ---
 
@@ -21,20 +21,65 @@ pip install "ravelpy[server]"
 
 ---
 
-## Auth setup
+## Auth
+
+Ravelry supports three credential tiers:
+
+| Tier | Credential | Access |
+| --- | --- | --- |
+| Read-only | Basic Auth with `read-` prefix username | Public catalog data only |
+| Personal key | Basic Auth with your developer credentials | Full authenticated access; all OAuth scopes granted automatically |
+| OAuth 2.0 | Bearer token | Scoped delegated access; requires explicit scope grants |
 
 Get your developer credentials from [ravelry.com/pro/developer](https://www.ravelry.com/pro/developer).
 
-Set them as environment variables (or in a `.env` file):
+### Basic Auth (read-only or personal key)
+
+Set credentials as environment variables (or in a `.env` file):
 
 ```env
-RAVELRY_USERNAME=read-xxxxxxxxxxxx
+RAVELRY_USERNAME=read-xxxxxxxxxxxx   # or your personal username
 RAVELRY_API_KEY=your_api_key
 ```
+
+```python
+from ravelpy import RavelryClient
+
+# Read-only key — public catalog data only
+client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key")
+
+# Personal key — full authenticated access, all scopes auto-granted
+client = RavelryClient(username="your_username", api_key="your_personal_key")
+```
+
+### OAuth 2.0
+
+```python
+from ravelpy import RavelryClient
+from ravelpy.oauth import OAuthClient, OAuthScope
+
+oauth = OAuthClient(
+    client_id="your_client_id",
+    client_secret="your_client_secret",
+)
+
+# Build an auth URL and redirect the user there
+url, state = oauth.auth_url(scopes=[OAuthScope.OFFLINE])
+
+# After the user grants access, exchange the code for a token
+token = oauth.exchange_code(code="the_code_from_callback")
+
+# Build a RavelryClient from the access token
+client = RavelryClient.from_oauth_token(token.access_token)
+```
+
+See [docs/authentication.md](docs/authentication.md) for the full OAuth scope list, a tested scope matrix, and notes on which endpoints require specific scopes.
 
 ---
 
 ## Quickstart
+
+All endpoints are accessed through sub-client attributes on `RavelryClient`:
 
 ```python
 from ravelpy import RavelryClient
@@ -42,29 +87,31 @@ from ravelpy import RavelryClient
 client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key")
 
 # Search for free sock patterns
-data, etag = client.search_patterns(query="socks", weight="fingering", availability="free")
-for p in data["patterns"]:
+data, etag, raw = client.patterns.search(query="socks", weight="fingering", availability="free")
+for p in raw["patterns"]:
     print(p["name"])
 
 # Get a specific yarn
-data, etag = client.get_yarn(yarn_id=90897)
-print(data["yarn"]["name"])
+data, etag, raw = client.yarns.show(yarn_id=90897)
+print(raw["yarn"]["name"])
 
-# Look up your stash
-data, etag = client.get_stash_list(username="your_username")
+# Look up your own profile (requires personal key or OAuth)
+personal_client = RavelryClient(username="your_username", api_key="your_personal_key")
+data, etag, raw = personal_client.people.me()
+print(raw["user"]["username"])
 ```
 
 ---
 
 ## ETag caching
 
-Every method returns `(data, etag)`. Pass the etag back on subsequent calls to avoid re-downloading unchanged data — the server returns `304 Not Modified` and `data` will be `None`.
+Every method returns `(model, etag, raw_dict)`. Pass the `etag` back on subsequent calls — the server returns `304 Not Modified` and both `model` and `raw_dict` will be `None`.
 
 ```python
-data, etag = client.get_yarn_weights()
+data, etag, raw = client.patterns.search(query="socks")
 
 # later...
-data, etag = client.get_yarn_weights(etag=etag)
+data, etag, raw = client.patterns.search(query="socks", etag=etag)
 if data is None:
     print("not modified — use cached data")
 ```
@@ -73,26 +120,40 @@ if data is None:
 
 ## API coverage
 
-| Section | Methods |
+| Sub-client | Methods |
 | --- | --- |
-| Reference Data | color families, fiber, yarn weights/attributes, needles, pattern attributes/categories, project crafts/statuses, photo sizes |
-| Search | global search |
-| Patterns | search, get, multi-get, comments, highlights, projects, sources |
-| Yarns | search, get, multi-get, comments, yarn companies |
-| People | current user, profile, comments, friends, library |
-| Projects | search, list, get, comments |
-| Stash | list, search, unified list, get, comments |
-| Queue | list, get item |
-| Favorites | list, get |
-| Fiber | get, comments |
-| Bundles | list, get, bundled items, packs |
-| Forums | sets, topics, filtered topics, posts, unread |
-| Messages | list, get |
-| Shops & Groups | search shops, get shop, stores, store products/purchases, search groups |
-| Designers | get |
-| Products & Deliveries | get product, attachments, deliveries |
-| Drafts & Volumes | draft patterns, volumes, pages |
-| App Config | config, data |
+| `client.patterns` | search, show, list (multi-get), comments, highlights, projects |
+| `client.pattern_sources` | show, search, patterns |
+| `client.yarns` | show, list (multi-get), search, comments |
+| `client.yarn_companies` | search |
+| `client.reference` | color families, fiber attributes/categories, yarn weights/attributes, pattern attributes/categories, pattern source types, languages, photo sizes |
+| `client.people` | me, show, comments |
+| `client.projects` | search, list, show, comments, crafts, statuses |
+| `client.stash` | list, search, unified_list, show, comments |
+| `client.queue` | list, show |
+| `client.favorites` | list, show |
+| `client.fiber` | show, comments |
+| `client.bundles` | list, show, bundled_items, packs |
+| `client.shops` | search, show |
+| `client.groups` | search |
+| `client.stores` | list, products, purchases |
+| `client.forums` | sets, topics, filtered_topics, post, unread_posts |
+| `client.topics` | show, posts |
+| `client.messages` | list, show |
+| `client.needles` | list, sizes, types |
+| `client.designers` | show |
+| `client.products` | show, attachments |
+| `client.deliveries` | list |
+| `client.drafts` | list, show |
+| `client.volumes` | show |
+| `client.pages` | show |
+| `client.packs` | show |
+| `client.friends` | list, activity |
+| `client.library` | search |
+| `client.saved_searches` | list |
+| `client.app` | config, data |
+| `client.extras` | color_families, search |
+| `client.photos` | dimensions, sizes, status |
 
 ---
 
