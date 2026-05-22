@@ -89,20 +89,87 @@ via personal keys, not OAuth tokens.
 
 ---
 
+## OAuth Scope Effect Matrix
+
+Live testing with each scope in isolation (`offline` + one scope) against all
+authenticated endpoints. Values are HTTP status codes.
+
+| Endpoint                            | baseline    | forum-write | message-write | patternstore-read | deliveries-read | library-pdf |
+|-----------------------------------|:-----------:|:-----------:|:-------------:|:-----------------:|:---------------:|:-----------:|
+| `patterns.comments`                 | 404         | 404         | 404           | 404               | 404             | 404         |
+| `patterns.projects`                 | 404         | 404         | 404           | 404               | 404             | 404         |
+| `yarns.comments`                    | 200         | 200         | 200           | 200               | 200             | 200         |
+| `fiber_attribute_groups.list`       | 302         | 302         | 302           | 302               | 302             | 302         |
+| `stores.list`                       | **403**     | 403         | 403           | **200**           | 403             | 403         |
+| `stores.products`                   | 403         | 403         | 403           | 403               | 403             | 403         |
+| `stores.purchases`                  | 403         | 403         | 403           | 403               | 403             | 403         |
+| `stash.*` (all 5)                   | 200         | 200         | 200           | 200               | 200             | 200         |
+| `projects.comments`                 | 200         | 200         | 200           | 200               | 200             | 200         |
+| `forums.*` (all 5)                  | 200/400/404 | 200/400/404 | 200/400/404   | 200/400/404       | 200/400/404     | 200/400/404 |
+| `topics.*` (both)                   | 200         | 200         | 200           | 200               | 200             | 200         |
+| `saved_searches.list`               | 200         | 200         | 200           | 200               | 200             | 200         |
+| `drafts.list`                       | **403**     | 403         | 403           | **200**           | 403             | 403         |
+| `drafts.show`                       | 404         | 404         | 404           | 404               | 404             | 404         |
+| `deliveries.list`                   | **403**     | 403         | 403           | 403               | **200**         | 403         |
+| `people.me`                         | 200         | 200         | 200           | 200               | 200             | 200         |
+| `people.show`                       | 200         | 200         | 200           | 200               | 200             | 200         |
+| `people.comments`                   | 403         | 403         | 403           | 403               | 403             | 403         |
+| `app.config` / `app.data`           | 200         | 200         | 200           | 200               | 200             | 200         |
+| `photos.sizes`                      | 200         | 200         | 200           | 200               | 200             | 200         |
+| `products.*` (all 3)                | 403         | 403         | 403           | 403               | 403             | 403         |
+| `favorites.*` (both)                | 200         | 200         | 200           | 200               | 200             | 200         |
+| `friends.*` (both)                  | 200         | 200         | 200           | 200               | 200             | 200         |
+| `library.search`                    | 200         | 200         | 200           | 200               | 200             | 200         |
+| `messages.list`                     | **403**     | 403         | 403           | 403               | 403             | 403         |
+| `messages.show`                     | 403         | 403         | 403           | 403               | 403             | 403         |
+| `needles.list`                      | 200         | 200         | 200           | 200               | 200             | 200         |
+| `pages.show`                        | 200         | 200         | 200           | 200               | 200             | 200         |
+| `volumes.show`                      | 403         | 403         | 403           | 403               | 403             | 403         |
+
+**Bold** cells are where a scope changes the result vs baseline.
+
+### Scope delta summary
+
+| Scope              | Endpoints unlocked vs baseline (offline only)       |
+|--------------------|-----------------------------------------------------|
+| `forum-write`      | None — write-only scope, no additional read access  |
+| `message-write`    | None — write-only scope, no additional read access  |
+| `patternstore-read`| `stores.list`, `drafts.list`                        |
+| `deliveries-read`  | `deliveries.list`                                   |
+| `library-pdf`      | None — unlocks PDF download links, not list access  |
+
+**Notable:** `patternstore-read` unlocks `stores.list` and `drafts.list` as an
+undocumented side effect — these endpoints are not pattern store resources by name.
+
+### Permanently inaccessible via any OAuth scope
+
+These endpoints return 403 regardless of which scopes are requested. A personal key
+is required for access where it works at all:
+
+| Endpoint                            | Personal key | Any OAuth scope                  |
+|-----------------------------------|:------------:|:--------------------------------:|
+| `GET /messages/list.json`           | 200          | 403                              |
+| `GET /messages/{id}.json`           | 403          | 403                              |
+| `GET /stores/list.json`             | 200          | 403 (except `patternstore-read`) |
+| `GET /stores/{id}/products.json`    | 403          | 403                              |
+| `GET /stores/{id}/purchases.json`   | 403          | 403                              |
+| `GET /volumes/{id}.json`            | 403          | 403                              |
+| `GET /people/{username}/comments`   | 403          | 403                              |
+| `GET /products/{id}.json`           | 403          | 403                              |
+
 ## Personal Key vs. OAuth: Behavioural Differences
 
-Live testing shows three endpoints accessible with a personal key that return 403
-with an OAuth Bearer token, even with a fully-scoped token. No documented scope
-grants access to these endpoints via OAuth:
+Three endpoints are accessible with a personal key but return 403 with any OAuth
+token that doesn't include `patternstore-read`:
 
-| Endpoint                         | Personal key | OAuth token |
-|----------------------------------|:------------:|:-----------:|
-| `GET /stores/list.json`          | 200          | 403         |
-| `GET /drafts/patterns/list.json` | 200          | 403         |
-| `GET /messages/list.json`        | 200          | 403         |
+| Endpoint                         | Personal key | OAuth (baseline) | OAuth (patternstore-read) |
+|----------------------------------|:------------:|:----------------:|:-------------------------:|
+| `GET /stores/list.json`          | 200          | 403              | 200                       |
+| `GET /drafts/patterns/list.json` | 200          | 403              | 200                       |
+| `GET /messages/list.json`        | 200          | 403              | 403                       |
 
-For applications that need these endpoints, a personal key is required. OAuth tokens
-are equivalent to personal keys for all other endpoints (that aren't ownership-gated).
+`messages.list` is accessible only via personal key — no OAuth scope grants read
+access to messages.
 
 ---
 
