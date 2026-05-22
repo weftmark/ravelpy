@@ -2,9 +2,9 @@
 
 ## Overview
 
-The Ravelry API uses HTTP Basic Auth for all requests. The credential pair you supply
-determines which endpoints are accessible. Three distinct credential tiers exist, each
-granting a different scope.
+The Ravelry API supports two authentication mechanisms: HTTP Basic Auth (for
+developer and personal keys) and OAuth 2.0 Bearer tokens. Three distinct
+credential tiers exist, each granting a different level of access.
 
 ---
 
@@ -14,108 +14,164 @@ granting a different scope.
 
 **Source:** Ravelry developer portal — `basic_auth_username` / `basic_auth_password`.
 
-**Scope:** Public catalog data only. Endpoints not marked *authenticated* in the Ravelry
-docs are generally accessible with this credential, though live testing reveals several
-exceptions where undocumented enforcement applies (see notes in
-[endpoint-auth-map.md](endpoint-auth-map.md)).
+**Format:** Username begins with `read-`.
 
-**Use case:** Querying patterns, yarns, shops, groups, search — anything that is
-inherently public on Ravelry.com.
+**Scope:** Public catalog data only. Cannot access authenticated endpoints.
+
+**Use case:** Querying patterns, yarns, shops, groups, search — anything inherently
+public on Ravelry.com.
 
 ```python
 client = RavelryClient(username="read-xxxx", api_key="basic_auth_password")
 ```
 
+---
+
 ### 2. Personal Account Access (Personal Key)
 
 **Source:** Ravelry developer portal — `access_key` / `personal_key`.
 
-**Scope:** Full access to the associated Ravelry account. All OAuth permission scopes
-are granted automatically — no explicit scopes are needed. This is the simplest
-credential for personal tooling.
+**Format:** Username does **not** begin with `read-`.
 
-**Use case:** Reading or writing your own stash, projects, queue, messages, favorites,
-needles, library, etc.
+**Scope:** Full read and write access to the associated Ravelry account. All OAuth
+permission scopes are granted automatically — no explicit scope list is needed.
+This is the simplest credential for personal tooling.
+
+**Use case:** Reading or writing your own stash, projects, queue, messages,
+favorites, needles, library, forums, etc.
 
 ```python
 client = RavelryClient(username="access_key_value", api_key="personal_key_value")
 ```
 
+---
+
 ### 3. OAuth 2.0
 
-**Source:** Client-ID / client-secret flow at `https://www.ravelry.com/oauth2/auth`.
+**Source:** Client-ID / client-secret flow; see [`scripts/oauth_login.py`](../scripts/oauth_login.py).
 
-**Scope:** Depends on scopes requested. Tokens expire after 24 hours; request `offline`
-to receive a refresh token.
+**Transport:** Bearer token in `Authorization` header (not Basic Auth).
 
-**Use case:** Apps that act on behalf of other Ravelry users.
+**Scope:** Determined by the scopes requested during authorization. Tokens expire
+after 24 hours; request the `offline` scope to receive a refresh token for
+silent renewal.
 
-**Note:** OAuth is not natively wired into `RavelryClient`. Supply an OAuth access token
-as `api_key` and the authorizing user's Ravelry username as `username` to use it manually.
+**Use case:** Apps that act on behalf of other Ravelry users, or when scoped
+permissions are required.
 
 ```python
-client = RavelryClient(username="ravelry_username", api_key="oauth_access_token")
+from ravelpy import RavelryClient
+from ravelpy.oauth import load_tokens
+from pathlib import Path
+
+tokens = load_tokens(Path(".oauth_tokens.json"))
+client = RavelryClient.from_oauth_token(tokens.access_token)
 ```
 
-#### Available OAuth Scopes
+#### Available OAuth Scopes (`OAuthScope` enum)
 
-| Scope              | Grants access to                                        |
-|--------------------|---------------------------------------------------------|
-| `offline`          | Refresh tokens (long-lived sessions)                    |
-| `forum-write`      | Posting to forums                                       |
-| `message-write`    | Sending messages                                        |
-| `patternstore-read`| Reading pattern store data                              |
-| `patternstore-pdf` | Downloading PDFs from the pattern store                 |
-| `deliveries-read`  | Reading delivery records                                |
-| `library-pdf`      | Downloading library PDFs                                |
-| `profile-only`     | Read-only profile access                                |
-| `carts-only`       | Cart/checkout access                                    |
+All valid scope values are codified in `ravelpy.OAuthScope`.
+
+| Scope                | Constant                       | Grants access to                                                                   |
+|----------------------|--------------------------------|------------------------------------------------------------------------------------|
+| `offline`            | `OAuthScope.OFFLINE`           | Refresh tokens (long-lived sessions)                                               |
+| `forum-write`        | `OAuthScope.FORUM_WRITE`       | Create, edit, and delete forum posts                                               |
+| `message-write`      | `OAuthScope.MESSAGE_WRITE`     | Send and delete private messages                                                   |
+| `patternstore-read`  | `OAuthScope.PATTERNSTORE_READ` | Enumerate user's pattern stores and products                                       |
+| `patternstore-pdf`   | `OAuthScope.PATTERNSTORE_PDF`  | Generate PDF download links from pattern stores (limited access, by request)       |
+| `deliveries-read`    | `OAuthScope.DELIVERIES_READ`   | List purchased or gifted products                                                  |
+| `library-pdf`        | `OAuthScope.LIBRARY_PDF`       | Download PDFs from library (tokens expire faster; may also expire on rate limit)   |
+| `profile-only`       | `OAuthScope.PROFILE_ONLY`      | `/current_user.json` only                                                          |
+| `carts-only`         | `OAuthScope.CARTS_ONLY`        | `/carts/*.json` only                                                               |
+
+**Note:** There is no `message-read` scope. Message list/read access is only available
+via personal keys, not OAuth tokens.
 
 ---
 
-## How Authentication Works
+## Personal Key vs. OAuth: Behavioural Differences
 
-All requests use HTTP Basic Auth:
+Live testing shows three endpoints accessible with a personal key that return 403
+with an OAuth Bearer token, even with a fully-scoped token. No documented scope
+grants access to these endpoints via OAuth:
+
+| Endpoint                         | Personal key | OAuth token |
+|----------------------------------|:------------:|:-----------:|
+| `GET /stores/list.json`          | 200          | 403         |
+| `GET /drafts/patterns/list.json` | 200          | 403         |
+| `GET /messages/list.json`        | 200          | 403         |
+
+For applications that need these endpoints, a personal key is required. OAuth tokens
+are equivalent to personal keys for all other endpoints (that aren't ownership-gated).
+
+---
+
+## HTTP Authentication
+
+### Basic Auth (developer and personal keys)
 
 ```
 Authorization: Basic base64(username:api_key)
 ```
 
-The Ravelry API signals auth failures with:
+### Bearer Token (OAuth 2.0)
 
-- **403 Forbidden** — most common response when the credential is insufficient
-- **302 → login page** — seen on some endpoints when no credentials are present or
-  credentials are insufficient (e.g., `fiber_attribute_groups/list`)
-- **401 Unauthorized** — less common; may appear on some endpoints
+```
+Authorization: Bearer <access_token>
+```
 
-A **200 OK** or **404 Not Found** response confirms the credential was accepted (the
-resource may simply not exist for 404s).
+### Auth failure signals
+
+| Status           | Meaning                                                                    |
+|------------------|----------------------------------------------------------------------------|
+| 403 Forbidden    | Most common rejection; credential is insufficient for this endpoint        |
+| 302 → login      | Credential missing or insufficient; seen on `fiber_attribute_groups/list`  |
+| 401 Unauthorized | OAuth token has expired or been revoked                                    |
+
+A **200 OK** or **404 Not Found** confirms the credential was accepted (404 means
+the resource doesn't exist, not a credential problem).
+
+---
+
+## HTTP Status Code Reference
+
+| Code | Meaning                                                                   |
+|------|---------------------------------------------------------------------------|
+| 400  | Bad Request — invalid parameters                                          |
+| 401  | Unauthorized — OAuth token expired or revoked                             |
+| 403  | Forbidden — credential not permitted for this endpoint                    |
+| 404  | Not Found — resource does not exist                                       |
+| 405  | Method Not Allowed — wrong HTTP verb                                      |
+| 413  | Request Entity Too Large — POST body exceeds per-method limit             |
+| 429  | Too Many Requests — rate limit exceeded                                   |
+| 500  | Server Error — bug on Ravelry's side; they receive notification           |
+| 503  | Service Unavailable — API is down                                         |
+| 504  | Gateway Timeout — response took more than 10 seconds; reduce page size    |
 
 ---
 
 ## Key Findings from Live Testing
 
-The official Ravelry API documentation marks certain endpoints as *authenticated* using
-a small tag in the HTML source. Live testing with a read-only Basic Auth key revealed
-several discrepancies:
+The official docs mark endpoints as *authenticated* via an HTML tag. Live testing with
+all three credential tiers revealed many discrepancies.
 
-### Endpoints marked authenticated in docs but publicly accessible in practice
+### Endpoints marked authenticated in docs but publicly accessible
 
-These endpoints return 200/404 with a read-only key — auth is not enforced:
+These return 200/404 with a read-only developer key — auth is not enforced:
 
 - `GET /designers/{id}.json`
 - `GET /packs/{id}.json`
 - `GET /needles/sizes.json` and `/needles/types.json`
 - `GET /pattern_sources/{id}/patterns.json`
-- `GET /people/{username}/fiber/{id}.json`
+- `GET /people/{username}/fiber/{id}.json` and `/fiber/{id}/comments.json`
 - `GET /bundled_items/{id}.json`
 - `GET /people/{username}/bundles/list.json` and `…/bundles/{id}.json`
 - `GET /people/{username}/queue/list.json` and `…/queue/{id}.json`
 - `GET /projects/{username}/list.json`, `/projects/crafts.json`, `/projects/project_statuses.json`
 
-### Endpoints not marked authenticated in docs but requiring auth in practice
+### Endpoints not marked authenticated in docs but requiring auth
 
-These endpoints return 403 with a read-only key — auth is enforced despite the docs:
+These return 403 with a read-only key — auth is enforced despite the docs:
 
 - `GET /stores/list.json`, `/stores/{id}/products.json`, `/stores/{id}/purchases.json`
 - `GET /stash/search.json`, `/people/{username}/stash/{id}/comments.json`
@@ -126,38 +182,24 @@ These endpoints return 403 with a read-only key — auth is enforced despite the
 - `GET /saved_searches/list.json`
 - `GET /drafts/patterns/list.json`, `/drafts/patterns/{id}.json`
 
-### Deliveries
+### Special cases
 
-`GET /deliveries/list.json` is not marked *authenticated* in the docs but returns 403
-with the read-only key. It requires the `deliveries-read` OAuth scope, which the personal
-key grants automatically.
-
-### fiber_attribute_groups/list
-
-`GET /fiber_attribute_groups/list.json` returns a 302 redirect to the Ravelry login
-page with the read-only key. The other two fiber attribute endpoints (`/fiber_attributes.json`
-and `/fiber_categories.json`) are publicly accessible.
-
-### patterns/highlights
-
-`GET /patterns/highlights.json` returns a 500 Internal Server Error regardless of
-credential. This appears to be an intermittent Ravelry API bug, not an auth enforcement.
+- **`GET /deliveries/list.json`** — requires `deliveries-read` OAuth scope; personal key grants automatically.
+- **`GET /fiber_attribute_groups/list.json`** — returns 302 redirect to login page with any credential type tested, including personal key and OAuth.
+- **`GET /patterns/highlights.json`** — returns 500 regardless of credential; intermittent Ravelry server bug.
+- **`GET /forums/filtered_topics.json`** — returns 400 (missing required parameters) with personal key and OAuth; 403 with read-only key.
 
 ---
 
 ## Using the Test Script
 
-A live API smoke test script is provided at [`scripts/test_auth.py`](../scripts/test_auth.py).
-It loads credentials from `.env` and calls every endpoint, reporting the actual HTTP
-status code against the expected auth tier.
-
-```
+```bash
+# Read-only developer key (default)
 python scripts/test_auth.py
-```
 
-Requires `.env` with:
+# Personal account key
+python scripts/test_auth.py --personal-key --env-file .env.user.readwrite
 
-```
-RAVELRY_USERNAME=read-xxxx
-RAVELRY_API_KEY=your-key
+# OAuth Bearer token
+python scripts/test_auth.py --oauth-token-file .oauth_tokens.json
 ```

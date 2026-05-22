@@ -4,13 +4,16 @@
 Loads credentials from an env file and calls every endpoint in the library.
 Reports the actual HTTP status code and whether it matches the expected auth tier:
 
-  public       → expect 200 or 404  (credential accepted; resource may not exist)
-  authenticated → expect 401 or 403  (credential rejected)
+  public        → expect 200 or 404  (credential accepted; resource may not exist)
+  authenticated → expect 401 or 403  (credential rejected) with read-only key
+                  OR expect 200/404 with --personal-key or --oauth-token-file
 
 Usage:
     python scripts/test_auth.py
     python scripts/test_auth.py --env-file .env.user.read
     python scripts/test_auth.py --api-user read-xxxx --api-key yourkey
+    python scripts/test_auth.py --personal-key --env-file .env.user.readwrite
+    python scripts/test_auth.py --oauth-token-file .oauth_tokens.json
 """
 
 import argparse
@@ -45,17 +48,38 @@ def _parse_args() -> argparse.Namespace:
             "are accepted (200/404) instead of rejected (401/403)."
         ),
     )
+    p.add_argument(
+        "--oauth-token-file",
+        metavar="FILE",
+        help=(
+            "Path to a JSON token file produced by oauth_login.py (default: .oauth_tokens.json). "
+            "Uses Bearer auth instead of Basic Auth. Implies --personal-key."
+        ),
+    )
     return p.parse_args()
 
 
 args = _parse_args()
-load_dotenv(Path(args.env_file))
 
-USERNAME = args.api_user or os.environ.get("RAVELRY_USERNAME", "")
-API_KEY  = args.api_key  or os.environ.get("RAVELRY_API_KEY",  "")
+# ── Resolve auth: OAuth Bearer token takes priority over Basic Auth ──────────
+import json as _json
 
-if not USERNAME or not API_KEY:
-    sys.exit(f"Credentials required: set RAVELRY_USERNAME/RAVELRY_API_KEY in {args.env_file} or pass --api-user/--api-key")
+OAUTH_TOKEN: Optional[str] = None
+
+if args.oauth_token_file:
+    token_path = Path(args.oauth_token_file)
+    if not token_path.exists():
+        sys.exit(f"Token file not found: {token_path}. Run scripts/oauth_login.py first.")
+    OAUTH_TOKEN = _json.loads(token_path.read_text()).get("access_token", "")
+    if not OAUTH_TOKEN:
+        sys.exit(f"No access_token found in {token_path}.")
+    USERNAME = API_KEY = ""  # not used with Bearer auth
+else:
+    load_dotenv(Path(args.env_file))
+    USERNAME = args.api_user or os.environ.get("RAVELRY_USERNAME", "")
+    API_KEY  = args.api_key  or os.environ.get("RAVELRY_API_KEY",  "")
+    if not USERNAME or not API_KEY:
+        sys.exit(f"Credentials required: set RAVELRY_USERNAME/RAVELRY_API_KEY in {args.env_file} or pass --api-user/--api-key")
 
 BASE_URL = "https://api.ravelry.com"
 TEST_USER = "tester"  # placeholder username for user-scoped paths; auth result is what matters
@@ -258,8 +282,15 @@ CASES: list[Case] = [
 
 
 def run() -> None:
-    personal = args.personal_key
-    session = httpx.Client(auth=(USERNAME, API_KEY), headers={"Accept": "application/json"}, timeout=15.0)
+    personal = args.personal_key or bool(OAUTH_TOKEN)
+
+    if OAUTH_TOKEN:
+        session = httpx.Client(
+            headers={"Accept": "application/json", "Authorization": f"Bearer {OAUTH_TOKEN}"},
+            timeout=15.0,
+        )
+    else:
+        session = httpx.Client(auth=(USERNAME, API_KEY), headers={"Accept": "application/json"}, timeout=15.0)
 
     results: list[tuple[Case, int]] = []
     for case in CASES:
@@ -276,7 +307,12 @@ def run() -> None:
     col_exp      = 7
     col_got      = 5
 
-    key_mode = "personal key (authenticated -> expect 200/404)" if personal else "read-only key (authenticated -> expect 401/403)"
+    if OAUTH_TOKEN:
+        key_mode = "OAuth Bearer token (authenticated -> expect 200/404)"
+    elif personal:
+        key_mode = "personal key (authenticated -> expect 200/404)"
+    else:
+        key_mode = "read-only key (authenticated -> expect 401/403)"
     header = (
         f"{'Resource':<{col_resource}} {'Method':<{col_method}} {'Path':<{col_path}} "
         f"{'Exp':<{col_exp}} {'Got':<{col_got}} Match  Note"
