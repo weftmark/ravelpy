@@ -798,6 +798,27 @@ class Pack(BaseModel):
     quantity: Optional[Decimal] = None
     ply: Optional[str] = None
     stash_id: Optional[int] = None
+    skeins: Optional[float] = None
+    primary_pack_id: Optional[int] = None
+    total_yards: Optional[float] = None
+    total_meters: Optional[float] = None
+    total_grams: Optional[float] = None
+    total_ounces: Optional[float] = None
+    yards_per_skein: Optional[float] = None
+    meters_per_skein: Optional[float] = None
+    grams_per_skein: Optional[float] = None
+    ounces_per_skein: Optional[float] = None
+    quantity_description: Optional[str] = None
+    shop_name: Optional[str] = None
+    shop_id: Optional[int] = None
+    dye_lot: Optional[str] = None
+    prefer_metric_weight: Optional[bool] = None
+    prefer_metric_length: Optional[bool] = None
+    total_paid: Optional[float] = None
+    total_paid_currency: Optional[str] = None
+    color_attributes: Optional[list[Any]] = None
+    thread_size: Optional[str] = None
+    personal_name: Optional[str] = None
 
 
 class Yarn(BaseModel):
@@ -981,6 +1002,22 @@ class Stash(BaseModel):
     updated_at: Optional[RavelryDatetime] = None
     comments_count: Optional[int] = None
     favorites_count: Optional[int] = None
+
+    @property
+    def total_skeins(self) -> Optional[float]:
+        """Sum of skeins across primary packs (those with primary_pack_id is None).
+
+        Stash.total_skeins from the API is null for thread/cone weight yarns;
+        this property is the reliable alternative.  Returns None if no packs
+        have skein data.
+        """
+        if not self.packs:
+            return None
+        values = [
+            p.skeins for p in self.packs
+            if p.primary_pack_id is None and p.skeins is not None
+        ]
+        return sum(values) if values else None
 
 
 class QueuedStash(BaseModel):
