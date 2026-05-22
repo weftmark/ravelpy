@@ -81,8 +81,8 @@ All valid scope values are codified in `ravelpy.OAuthScope`.
 | `patternstore-pdf`   | `OAuthScope.PATTERNSTORE_PDF`  | Generate PDF download links from pattern stores (limited access, by request)       |
 | `deliveries-read`    | `OAuthScope.DELIVERIES_READ`   | List purchased or gifted products                                                  |
 | `library-pdf`        | `OAuthScope.LIBRARY_PDF`       | Download PDFs from library (tokens expire faster; may also expire on rate limit)   |
-| `profile-only`       | `OAuthScope.PROFILE_ONLY`      | `/current_user.json` only                                                          |
-| `carts-only`         | `OAuthScope.CARTS_ONLY`        | `/carts/*.json` only                                                               |
+| `profile-only`       | `OAuthScope.PROFILE_ONLY`      | `/current_user.json` only — **cannot be combined with any other scope**            |
+| `carts-only`         | `OAuthScope.CARTS_ONLY`        | `/carts/*.json` only — **cannot be combined with any other scope**                 |
 
 **Note:** There is no `message-read` scope. Message list/read access is only available
 via personal keys, not OAuth tokens.
@@ -110,13 +110,13 @@ are equivalent to personal keys for all other endpoints (that aren't ownership-g
 
 ### Basic Auth (developer and personal keys)
 
-```
+```http
 Authorization: Basic base64(username:api_key)
 ```
 
 ### Bearer Token (OAuth 2.0)
 
-```
+```http
 Authorization: Bearer <access_token>
 ```
 

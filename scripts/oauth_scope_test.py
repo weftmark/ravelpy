@@ -46,8 +46,10 @@ SCOPE_MATRIX: list[tuple[str, list[str]]] = [
     ("patternstore-read",  ["offline", "patternstore-read"]),
     ("deliveries-read",    ["offline", "deliveries-read"]),
     ("library-pdf",        ["offline", "library-pdf"]),
-    ("profile-only",       ["offline", "profile-only"]),
-    ("carts-only",         ["offline", "carts-only"]),
+    # NOTE: profile-only and carts-only are mutually exclusive with all other scopes.
+    # Combining them with "offline" (or any other scope) causes Ravelry to reject
+    # the authorization with "Unexpected scope error". They are standalone-only tokens
+    # and cannot be tested in this composite flow.
 ]
 
 ALL_SCOPE_NAMES = [name for name, _ in SCOPE_MATRIX]

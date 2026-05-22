@@ -85,6 +85,11 @@ class OAuthScope(str, Enum):
 
     Minimal-privilege scopes
     ------------------------
+    These scopes are **mutually exclusive** with all other scopes, including
+    ``offline``.  Combining them with any other scope causes Ravelry to reject
+    the authorization request with "Unexpected scope error".  Request them
+    alone as the sole scope value.
+
     PROFILE_ONLY
         Access ``/current_user.json`` and nothing else.
 
