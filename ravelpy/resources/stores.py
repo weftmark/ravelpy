@@ -13,6 +13,7 @@ class Stores(Resource):
     or OAuth 2.0 is required.
 
     Required OAuth scopes (per API docs):
+
     - ``stores.list``: ``patternstore-read`` or ``patternstore-write`` — confirmed 200
       in scope matrix with ``patternstore-read``.
     - ``stores.products``: ``patternstore-read`` or ``patternstore-write`` — but scope

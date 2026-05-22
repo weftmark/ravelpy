@@ -31,6 +31,12 @@ server = [
     "uvicorn[standard]>=0.29.0",
     "python-dotenv>=1.0.0",
 ]
+docs = [
+    "sphinx>=7.0.0",
+    "myst-parser>=3.0.0",
+    "sphinx-autoapi>=3.0.0",
+    "furo>=2024.1.29",
+]
 dev = [
     "pytest>=8.0.0",
     "respx>=0.21.0",

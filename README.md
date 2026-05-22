@@ -3,7 +3,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 
-Python client for the [Ravelry REST API](https://www.ravelry.com/api), supporting read-only Basic Auth (public catalog data), personal account keys (full authenticated access), and OAuth 2.0 (scoped delegated access).
+Python client for the [Ravelry REST API](https://www.ravelry.com/api), supporting read-only Basic Auth
+(public catalog data), personal account keys (full authenticated access), and OAuth 2.0 (scoped delegated
+access).
+
+---
+
+> **Built with Claude AI**
+>
+> The requirements, architecture, and implementation of ravelpy were developed collaboratively with [Claude](https://claude.ai) by Anthropic. Claude wrote the majority of the code in this repository through an iterative conversation-driven process. This is disclosed prominently because we believe AI development transparency matters.
 
 ---
 
