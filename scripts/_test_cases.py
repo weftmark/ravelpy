@@ -28,8 +28,8 @@ CASES: list[Case] = [
     Case("patterns", "search",     "/patterns/search.json",      {"query": "hat"}, expected="public"),
     Case("patterns", "highlights", "/patterns/highlights.json",  expected="public",
          note="returns 500 server error — likely an intermittent API bug, not auth"),
-    Case("patterns", "comments",   "/patterns/1/comments.json",  expected="authenticated"),
-    Case("patterns", "projects",   "/patterns/1/projects.json",  expected="authenticated"),
+    Case("patterns", "comments",   "/patterns/7529294/comments.json",  expected="authenticated"),
+    Case("patterns", "projects",   "/patterns/7529294/projects.json",  expected="authenticated"),
 
     # ── Yarns ───────────────────────────────────────────────────────────────
     Case("yarns", "show",     "/yarns/95245.json",             expected="public"),

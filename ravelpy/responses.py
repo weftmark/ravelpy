@@ -69,7 +69,7 @@ class Paginator(BaseModel):
     page_count: Optional[int] = None
     page_size: Optional[int] = None
     results: Optional[int] = None
-    last_page: Optional[bool] = None
+    last_page: Optional[int] = None
 
 
 # ---------------------------------------------------------------------------

@@ -96,8 +96,8 @@ authenticated endpoints. Values are HTTP status codes.
 
 | Endpoint                            | baseline    | forum-write | message-write | patternstore-read | deliveries-read | library-pdf |
 |-----------------------------------|:-----------:|:-----------:|:-------------:|:-----------------:|:---------------:|:-----------:|
-| `patterns.comments`                 | 404         | 404         | 404           | 404               | 404             | 404         |
-| `patterns.projects`                 | 404         | 404         | 404           | 404               | 404             | 404         |
+| `patterns.comments`                 | 200         | 200         | 200           | 200               | 200             | 200         |
+| `patterns.projects`                 | 200         | 200         | 200           | 200               | 200             | 200         |
 | `yarns.comments`                    | 200         | 200         | 200           | 200               | 200             | 200         |
 | `fiber_attribute_groups.list`       | 302         | 302         | 302           | 302               | 302             | 302         |
 | `stores.list`                       | **403**     | 403         | 403           | **200**           | 403             | 403         |
