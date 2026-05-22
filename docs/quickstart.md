@@ -114,3 +114,48 @@ try:
 except RavelryAPIError as e:
     print(e.status_code, e.message)
 ```
+
+## Async client
+
+`AsyncRavelryClient` mirrors `RavelryClient` exactly but every method is a
+coroutine — `await` it or use it as an async context manager:
+
+```python
+import asyncio
+from ravelpy import AsyncRavelryClient
+
+async def main():
+    async with AsyncRavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") as client:
+        data, etag, raw = await client.patterns.search(query="colorwork", page_size=20)
+        for pattern in raw["patterns"]:
+            print(pattern["name"])
+
+asyncio.run(main())
+```
+
+OAuth Bearer tokens work the same way:
+
+```python
+from pathlib import Path
+from ravelpy import AsyncRavelryClient
+from ravelpy.oauth import load_tokens
+
+async def main():
+    tokens = load_tokens(Path(".oauth_tokens.json"))
+    async with AsyncRavelryClient.from_oauth_token(tokens.access_token) as client:
+        data, etag, raw = await client.people.me()
+        print(raw["user"]["username"])
+```
+
+Refreshing tokens asynchronously uses `AsyncOAuthClient`:
+
+```python
+from ravelpy.oauth import AsyncOAuthClient, load_tokens, save_tokens
+from pathlib import Path
+
+async def refresh():
+    tokens = load_tokens(Path(".oauth_tokens.json"))
+    oauth = AsyncOAuthClient(client_id="...", client_secret="...")
+    new_tokens = await oauth.refresh(tokens.refresh_token)
+    save_tokens(new_tokens, Path(".oauth_tokens.json"))
+```

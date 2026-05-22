@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Favorites API endpoints."""
 
 from typing import Optional
-from .base import ApiResult, Resource
+from .base import ApiResult, AsyncResource, Resource
 from ..responses import FavoriteResponse, FavoritesResponse
 
 
@@ -30,3 +30,27 @@ class Favorites(Resource):
     def show(self, username: str, favorite_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single favorite (``GET /people/{username}/favorites/{id}.json``)."""
         return self._get(f"/people/{username}/favorites/{favorite_id}.json", etag=etag, model=FavoriteResponse)
+
+
+class AsyncFavorites(AsyncResource):
+    """Async version of :class:`Favorites`."""
+
+    async def list(
+        self,
+        username: str,
+        types: Optional[str] = None,
+        query: Optional[str] = None,
+        tag: Optional[str] = None,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        etag: Optional[str] = None,
+    ) -> ApiResult:
+        """Return a user's favorites (``GET /people/{username}/favorites/list.json``)."""
+        return await self._get(f"/people/{username}/favorites/list.json", {
+            "types": types, "query": query, "tag": tag,
+            "page": page, "page_size": page_size,
+        }, etag=etag, model=FavoritesResponse)
+
+    async def show(self, username: str, favorite_id: int, etag: Optional[str] = None) -> ApiResult:
+        """Return a single favorite (``GET /people/{username}/favorites/{id}.json``)."""
+        return await self._get(f"/people/{username}/favorites/{favorite_id}.json", etag=etag, model=FavoriteResponse)

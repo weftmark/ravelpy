@@ -4,6 +4,45 @@ import httpx
 
 from .resources import (
     App,
+    AsyncApp,
+    AsyncBundledItems,
+    AsyncBundles,
+    AsyncDeliveries,
+    AsyncDesigners,
+    AsyncDrafts,
+    AsyncExtras,
+    AsyncFavorites,
+    AsyncFiber,
+    AsyncFiberAttributeGroups,
+    AsyncForums,
+    AsyncFriends,
+    AsyncGroups,
+    AsyncLanguages,
+    AsyncLibrary,
+    AsyncMessages,
+    AsyncNeedles,
+    AsyncPacks,
+    AsyncPages,
+    AsyncPatternAttributes,
+    AsyncPatternCategories,
+    AsyncPatternSourceTypes,
+    AsyncPatternSources,
+    AsyncPatterns,
+    AsyncPeople,
+    AsyncPhotos,
+    AsyncProductAttachments,
+    AsyncProducts,
+    AsyncProjects,
+    AsyncQueue,
+    AsyncSavedSearches,
+    AsyncShops,
+    AsyncStash,
+    AsyncStores,
+    AsyncTopics,
+    AsyncVolumes,
+    AsyncYarnAttributes,
+    AsyncYarnCompanies,
+    AsyncYarns,
     BundledItems,
     Bundles,
     Deliveries,
@@ -178,3 +217,99 @@ class RavelryClient:
         self.yarn_attributes = YarnAttributes(session)
         self.yarn_companies = YarnCompanies(session)
         self.yarns = Yarns(session)
+
+
+class AsyncRavelryClient:
+    """Async client for the Ravelry API using :class:`httpx.AsyncClient`.
+
+    Mirrors :class:`RavelryClient` but every sub-client method is a coroutine.
+    Use as an async context manager so the underlying session is closed cleanly::
+
+        async with AsyncRavelryClient(username="read-xxxx", api_key="your-key") as client:
+            data, etag, raw = await client.patterns.search(query="socks")
+
+    **Credential types** are the same as :class:`RavelryClient` — read-only key,
+    personal key, or OAuth 2.0 Bearer token via :meth:`from_oauth_token`.
+    """
+
+    def __init__(self, username: str, api_key: str) -> None:
+        """Create an async client authenticated with Ravelry developer credentials.
+
+        Args:
+            username: Ravelry username for HTTP Basic Auth.
+            api_key:  Corresponding API key used as the Basic Auth password.
+        """
+        session = httpx.AsyncClient(auth=(username, api_key), headers={"Accept": "application/json"})
+        self._setup_resources(session)
+
+    @classmethod
+    def from_oauth_token(cls, access_token: str) -> "AsyncRavelryClient":
+        """Create an async client that authenticates with a Ravelry OAuth 2.0 access token.
+
+        Args:
+            access_token: A valid Ravelry OAuth 2.0 access token.
+
+        Returns:
+            A fully initialised :class:`AsyncRavelryClient` using Bearer token auth.
+        """
+        class _BearerAuth(httpx.Auth):
+            def auth_flow(self, request):
+                request.headers["Authorization"] = f"Bearer {access_token}"
+                yield request
+
+        instance = cls.__new__(cls)
+        session = httpx.AsyncClient(auth=_BearerAuth(), headers={"Accept": "application/json"})
+        instance._setup_resources(session)
+        return instance
+
+    async def aclose(self) -> None:
+        """Close the underlying :class:`httpx.AsyncClient` session."""
+        await self._session.aclose()
+
+    async def __aenter__(self) -> "AsyncRavelryClient":
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    def _setup_resources(self, session: httpx.AsyncClient) -> None:
+        self._session = session
+        self.app = AsyncApp(session)
+        self.bundled_items = AsyncBundledItems(session)
+        self.bundles = AsyncBundles(session)
+        self.deliveries = AsyncDeliveries(session)
+        self.designers = AsyncDesigners(session)
+        self.drafts = AsyncDrafts(session)
+        self.extras = AsyncExtras(session)
+        self.favorites = AsyncFavorites(session)
+        self.fiber = AsyncFiber(session)
+        self.fiber_attribute_groups = AsyncFiberAttributeGroups(session)
+        self.forums = AsyncForums(session)
+        self.friends = AsyncFriends(session)
+        self.groups = AsyncGroups(session)
+        self.languages = AsyncLanguages(session)
+        self.library = AsyncLibrary(session)
+        self.messages = AsyncMessages(session)
+        self.needles = AsyncNeedles(session)
+        self.packs = AsyncPacks(session)
+        self.pages = AsyncPages(session)
+        self.pattern_attributes = AsyncPatternAttributes(session)
+        self.pattern_categories = AsyncPatternCategories(session)
+        self.pattern_source_types = AsyncPatternSourceTypes(session)
+        self.pattern_sources = AsyncPatternSources(session)
+        self.patterns = AsyncPatterns(session)
+        self.people = AsyncPeople(session)
+        self.photos = AsyncPhotos(session)
+        self.product_attachments = AsyncProductAttachments(session)
+        self.products = AsyncProducts(session)
+        self.projects = AsyncProjects(session)
+        self.queue = AsyncQueue(session)
+        self.saved_searches = AsyncSavedSearches(session)
+        self.shops = AsyncShops(session)
+        self.stash = AsyncStash(session)
+        self.stores = AsyncStores(session)
+        self.topics = AsyncTopics(session)
+        self.volumes = AsyncVolumes(session)
+        self.yarn_attributes = AsyncYarnAttributes(session)
+        self.yarn_companies = AsyncYarnCompanies(session)
+        self.yarns = AsyncYarns(session)

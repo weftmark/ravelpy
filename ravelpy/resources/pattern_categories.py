@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Pattern Categories reference endpoint."""
 
 from typing import Optional
-from .base import ApiResult, Resource
+from .base import ApiResult, AsyncResource, Resource
 from ..responses import PatternCategoriesResponse
 
 
@@ -14,3 +14,11 @@ class PatternCategories(Resource):
     def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return all pattern categories (``GET /pattern_categories/list.json``)."""
         return self._get("/pattern_categories/list.json", etag=etag, model=PatternCategoriesResponse)
+
+
+class AsyncPatternCategories(AsyncResource):
+    """Async version of :class:`PatternCategories`."""
+
+    async def list(self, etag: Optional[str] = None) -> ApiResult:
+        """Return all pattern categories (``GET /pattern_categories/list.json``)."""
+        return await self._get("/pattern_categories/list.json", etag=etag, model=PatternCategoriesResponse)

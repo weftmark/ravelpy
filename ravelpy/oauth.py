@@ -305,6 +305,75 @@ class OAuthClient:
         return self.exchange_code(captured["code"])
 
 
+class AsyncOAuthClient:
+    """Async variant of :class:`OAuthClient` for token exchange and refresh.
+
+    Uses :class:`httpx.AsyncClient` for non-blocking HTTP calls.  The browser
+    redirect flow (:meth:`OAuthClient.local_flow`) is synchronous by nature
+    (it runs a blocking HTTP server); use :class:`OAuthClient` for that step,
+    then pass the resulting tokens to an :class:`~ravelpy.AsyncRavelryClient`.
+    """
+
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        redirect_uri: str = DEFAULT_REDIRECT_URI,
+    ) -> None:
+        """
+        Args:
+            client_id:     OAuth client ID from the Ravelry developer portal.
+            client_secret: OAuth client secret from the Ravelry developer portal.
+            redirect_uri:  Must match a URI registered in the developer portal.
+        """
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.redirect_uri = redirect_uri
+
+    async def exchange_code(self, code: str) -> TokenResponse:
+        """Exchange an authorization code for access and refresh tokens (async).
+
+        Args:
+            code: The ``code`` query parameter received at the redirect URI.
+
+        Raises:
+            httpx.HTTPStatusError: If the token endpoint returns a non-2xx status.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                TOKEN_URL,
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": self.redirect_uri,
+                },
+                auth=(self.client_id, self.client_secret),
+            )
+        response.raise_for_status()
+        return TokenResponse(response.json())
+
+    async def refresh(self, refresh_token: str) -> TokenResponse:
+        """Obtain a new access token using a refresh token (async).
+
+        Args:
+            refresh_token: The refresh token from a previous token exchange.
+
+        Raises:
+            httpx.HTTPStatusError: If the token endpoint returns a non-2xx status.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                TOKEN_URL,
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": refresh_token,
+                },
+                auth=(self.client_id, self.client_secret),
+            )
+        response.raise_for_status()
+        return TokenResponse(response.json())
+
+
 # ── Token persistence helpers ───────────────────────────────────────────────
 
 def save_tokens(tokens: TokenResponse, path: Path) -> None:
