@@ -32,6 +32,7 @@ import json
 import secrets
 import urllib.parse
 import webbrowser
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 
@@ -42,6 +43,64 @@ AUTH_URL = "https://www.ravelry.com/oauth2/auth"
 TOKEN_URL = "https://www.ravelry.com/oauth2/token"
 DEFAULT_PORT = 8080
 DEFAULT_REDIRECT_URI = f"http://localhost:{DEFAULT_PORT}/callback"
+
+
+class OAuthScope(str, Enum):
+    """Valid OAuth 2.0 scope values accepted by the Ravelry token endpoint.
+
+    Pass one or more values to :meth:`OAuthClient.auth_url` or
+    :meth:`OAuthClient.local_flow`.  Separate multiple scopes with a space,
+    or pass a list and join with ``" ".join(...)``.
+
+    Personal keys (Basic Auth) do **not** need explicit scopes — all privileges
+    are granted automatically.  Scopes are only relevant for OAuth 2.0 flows.
+
+    Standard scopes
+    ---------------
+    OFFLINE
+        Standard OAuth 2.0 scope for requesting a refresh token.  Without this,
+        tokens expire after 24 hours and require full re-authorization.
+
+    FORUM_WRITE
+        Create, edit, and delete forum posts.
+
+    MESSAGE_WRITE
+        Create (send) and delete private messages to other users.
+
+    PATTERNSTORE_READ
+        Enumerate the pattern stores the user administers and their products.
+
+    PATTERNSTORE_PDF
+        Generate download links for PDFs within the user's pattern stores.
+        Currently limited access — available by request only.
+
+    DELIVERIES_READ
+        List products purchased by or gifted to the current user.
+
+    LIBRARY_PDF
+        Directly download PDFs from a user's library via ``generate_download_link``.
+        Tokens with this scope expire more quickly than usual and may also expire
+        if a rate limit is exceeded.  Consider holding a separate token for this
+        scope alongside a normal token.
+
+    Minimal-privilege scopes
+    ------------------------
+    PROFILE_ONLY
+        Access ``/current_user.json`` and nothing else.
+
+    CARTS_ONLY
+        Access ``/carts/*.json`` and nothing else.
+    """
+
+    OFFLINE          = "offline"
+    FORUM_WRITE      = "forum-write"
+    MESSAGE_WRITE    = "message-write"
+    PATTERNSTORE_READ = "patternstore-read"
+    PATTERNSTORE_PDF = "patternstore-pdf"
+    DELIVERIES_READ  = "deliveries-read"
+    LIBRARY_PDF      = "library-pdf"
+    PROFILE_ONLY     = "profile-only"
+    CARTS_ONLY       = "carts-only"
 
 
 class TokenResponse:

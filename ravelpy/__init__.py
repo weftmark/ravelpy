@@ -9,7 +9,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 from .client import RavelryClient
 from .exceptions import RavelryAPIError
-from .oauth import OAuthClient, TokenResponse, load_tokens, save_tokens
+from .oauth import OAuthClient, OAuthScope, TokenResponse, load_tokens, save_tokens
 from .models import (
     Activity,
     Ad,
@@ -113,6 +113,7 @@ __all__ = [
     "RavelryClient",
     "RavelryAPIError",
     "OAuthClient",
+    "OAuthScope",
     "TokenResponse",
     "load_tokens",
     "save_tokens",
