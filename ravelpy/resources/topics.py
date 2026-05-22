@@ -8,8 +8,10 @@ from ..responses import ForumPostsResponse, TopicResponse
 class Topics(Resource):
     """Wraps topic show and topic posts endpoints.
 
-    Auth: *authenticated* — requires a personal key or OAuth 2.0.  With OAuth,
-    write operations require the ``forum-write`` scope (not yet in this library).
+    Auth: *authenticated* — requires a personal key or OAuth 2.0.  Any valid OAuth
+    token (baseline or higher) is sufficient for read access; no specific scope needed.
+    Write operations (create, reply, update) require the ``forum-write`` OAuth scope
+    per API docs; not yet implemented in this library.
     """
 
     def show(self, topic_id: int, etag: Optional[str] = None) -> ApiResult:

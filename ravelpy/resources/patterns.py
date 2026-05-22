@@ -17,7 +17,11 @@ class Patterns(Resource):
 
     Auth: ``show``, ``list``, ``search``, and ``highlights`` are public catalog data accessible
     with the read-only Basic Auth key.  ``comments`` and ``projects`` return 403 with the
-    read-only key — they require a personal key or OAuth 2.0.
+    read-only key — they require a personal key or OAuth 2.0.  Any valid OAuth token
+    (baseline or higher) is sufficient; no specific scope needed for read access.
+
+    Write operations (create_photo, reorder_photos, update) require ``pattern-write`` or
+    ``patternstore-write`` per API docs; not yet implemented in this library.
     """
 
     def show(self, pattern_id: int, etag: Optional[str] = None) -> ApiResult:
@@ -60,7 +64,8 @@ class Patterns(Resource):
     ) -> ApiResult:
         """Return comments for a pattern (``GET /patterns/{id}/comments.json``).
 
-        Authenticated — requires a personal key or OAuth 2.0.
+        Authenticated — any valid OAuth token works; no specific scope required.
+        Confirmed 200 across all isolated scopes.  See ``docs/authentication.md``.
         """
         return self._get(f"/patterns/{pattern_id}/comments.json", {"page": page, "page_size": page_size, "sort": sort}, etag=etag, model=CommentsResponse)
 
@@ -77,6 +82,7 @@ class Patterns(Resource):
     ) -> ApiResult:
         """Return projects using a pattern (``GET /patterns/{id}/projects.json``).
 
-        Authenticated — requires a personal key or OAuth 2.0.
+        Authenticated — any valid OAuth token works; no specific scope required.
+        Confirmed 200 across all isolated scopes.  See ``docs/authentication.md``.
         """
         return self._get(f"/patterns/{pattern_id}/projects.json", {"page": page, "page_size": page_size}, etag=etag, model=ProjectsResponse)

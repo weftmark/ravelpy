@@ -20,5 +20,9 @@ class Deliveries(Resource):
         page_size: Optional[int] = None,
         etag: Optional[str] = None,
     ) -> ApiResult:
-        """Return the authenticated user's deliveries (``GET /deliveries/list.json``)."""
+        """Return the authenticated user's deliveries (``GET /deliveries/list.json``).
+
+        Requires ``deliveries-read`` OAuth scope (confirmed in API docs and scope matrix).
+        Personal key grants this scope automatically.  See ``docs/authentication.md``.
+        """
         return self._get("/deliveries/list.json", {"page": page, "page_size": page_size}, etag=etag, model=DeliveriesResponse)

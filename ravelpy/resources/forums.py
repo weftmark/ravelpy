@@ -10,7 +10,11 @@ class Forums(Resource):
 
     Auth: *authenticated* — all five endpoints require a personal key or OAuth 2.0.
     ``unread_posts`` is not marked *authenticated* in the official docs but returns
-    403 with the read-only Basic Auth key in live testing.
+    403 with the read-only Basic Auth key in live testing.  Any valid OAuth token
+    (baseline or higher) is sufficient for read access; no specific scope needed.
+
+    Write operations (topics/create, topics/reply, topics/update) require the
+    ``forum-write`` OAuth scope per API docs; not yet implemented in this library.
     """
 
     def sets(self, etag: Optional[str] = None) -> ApiResult:

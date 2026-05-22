@@ -8,7 +8,17 @@ from ..responses import CommentsResponse, UserResponse
 class People(Resource):
     """Wraps current-user, profile show, and profile comment endpoints.
 
-    Auth: *authenticated* — all methods require a personal key or OAuth 2.0.
+    Auth: *authenticated* — all methods require a personal key or OAuth 2.0.  Any valid
+    OAuth token is sufficient for read access; no specific scope needed.
+
+    The profile update write operation requires ``profile-write`` OAuth scope per API
+    docs; not yet implemented in this library.
+
+    Note: ``people.comments`` returns 403 for all tested credentials including personal
+    key.  See GitHub issue #2 — likely requires a valid username that has comments, or
+    may require specific parameters.
+
+    TODO: validate ``people.comments`` with a username known to have profile comments.
     """
 
     def me(self, etag: Optional[str] = None) -> ApiResult:
