@@ -44,6 +44,41 @@ OAuth required; `scope` = specific OAuth scope needed.
 
 ---
 
+## Pack model
+
+`Pack` objects appear in `Stash.packs`, `Project.packs`, and the individual
+`GET /packs/{id}.json` endpoint. Each pack represents one yarn in a stash
+entry or project, and includes skein counts, total yardage/weight, and
+per-skein measurements.
+
+Key fields:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `skeins` | `float` | Skein count for this pack — the reliable source of quantity |
+| `primary_pack_id` | `int \| None` | `None` on the primary pack; set on secondary packs |
+| `total_yards` / `total_meters` | `float` | Total yardage/meterage across all skeins |
+| `total_grams` / `total_ounces` | `float` | Total weight |
+| `yards_per_skein` / `grams_per_skein` | `float` | Per-skein measurements |
+| `quantity_description` | `str` | Human-readable e.g. `"2 skeins = 400 yards"` |
+| `shop_name` / `shop_id` | `str / int` | Where the yarn was purchased |
+
+### Stash.total_skeins
+
+`Stash` exposes a `total_skeins` property that sums `skeins` across primary
+packs (those where `primary_pack_id is None`). The API's own `total_skeins`
+field is `null` for thread and cone-weight yarns — use the property instead:
+
+```python
+from ravelpy.models import Stash
+
+_, _, raw = client.stash.show(username="you", stash_id=123)
+stash = Stash(**raw["stash"])
+print(stash.total_skeins)
+```
+
+---
+
 ## Pagination
 
 Methods that return lists accept `page` and `page_size` parameters. The raw

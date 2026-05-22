@@ -47,6 +47,30 @@ data, etag, raw = personal.people.me()
 print(raw["user"]["username"])
 ```
 
+## Browse your stash
+
+Stash and pack data require a personal key or OAuth token.
+
+```python
+personal = RavelryClient(username="your_username", api_key="your_personal_key")
+
+data, etag, raw = personal.stash.list(username="your_username")
+for entry in raw["stash"]:
+    print(entry["name"], entry.get("yarn_weight_name", ""))
+```
+
+The `Stash` model exposes a `total_skeins` convenience property that sums
+skein counts across primary packs. The API's own `total_skeins` field is
+`null` for thread and cone-weight yarns — use this property instead:
+
+```python
+from ravelpy.models import Stash
+
+data, etag, raw = personal.stash.show(username="your_username", stash_id=123)
+stash = Stash(**raw["stash"])
+print(stash.total_skeins)  # sum of skeins from primary packs
+```
+
 ## ETag caching
 
 Pass an `etag` back to avoid re-downloading unchanged data. The server
