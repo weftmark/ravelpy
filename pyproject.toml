@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ravelpy"
-version = "0.1.1"
+version = "0.2.0"
 description = "Python client for the Ravelry REST API"
 readme = "README.md"
 license = "MIT"
@@ -39,6 +39,7 @@ docs = [
 ]
 dev = [
     "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
     "respx>=0.21.0",
     "python-dotenv>=1.0.0",
     "fastapi>=0.111.0",
@@ -56,3 +57,4 @@ packages = ["ravelpy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"

@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Stores API endpoints."""
 
 from typing import Optional
-from .base import ApiResult, Resource
+from .base import ApiResult, AsyncResource, Resource
 from ..responses import StoreProductsResponse, StoresResponse
 
 
@@ -66,3 +66,31 @@ class Stores(Resource):
         403 under all tested scopes.  See GitHub issue #2.
         """
         return self._get(f"/stores/{store_id}/purchases.json", {"page": page, "page_size": page_size}, etag=etag)
+
+
+class AsyncStores(AsyncResource):
+    """Async version of :class:`Stores`."""
+
+    async def list(self, etag: Optional[str] = None) -> ApiResult:
+        """Return the current user's stores (``GET /stores/list.json``)."""
+        return await self._get("/stores/list.json", etag=etag, model=StoresResponse)
+
+    async def products(
+        self,
+        store_id: int,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        etag: Optional[str] = None,
+    ) -> ApiResult:
+        """Return products for a store (``GET /stores/{id}/products.json``)."""
+        return await self._get(f"/stores/{store_id}/products.json", {"page": page, "page_size": page_size}, etag=etag, model=StoreProductsResponse)
+
+    async def purchases(
+        self,
+        store_id: int,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        etag: Optional[str] = None,
+    ) -> ApiResult:
+        """Return purchases for a store (``GET /stores/{id}/purchases.json``)."""
+        return await self._get(f"/stores/{store_id}/purchases.json", {"page": page, "page_size": page_size}, etag=etag)

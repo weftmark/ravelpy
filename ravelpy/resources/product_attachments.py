@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Product Attachments API endpoints."""
 
 from typing import Optional
-from .base import ApiResult, Resource
+from .base import ApiResult, AsyncResource, Resource
 from ..responses import ProductAttachmentResponse
 
 
@@ -15,3 +15,11 @@ class ProductAttachments(Resource):
     def show(self, attachment_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single product attachment (``GET /product_attachments/{id}.json``)."""
         return self._get(f"/product_attachments/{attachment_id}.json", etag=etag, model=ProductAttachmentResponse)
+
+
+class AsyncProductAttachments(AsyncResource):
+    """Async version of :class:`ProductAttachments`."""
+
+    async def show(self, attachment_id: int, etag: Optional[str] = None) -> ApiResult:
+        """Return a single product attachment (``GET /product_attachments/{id}.json``)."""
+        return await self._get(f"/product_attachments/{attachment_id}.json", etag=etag, model=ProductAttachmentResponse)

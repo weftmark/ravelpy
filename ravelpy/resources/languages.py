@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Languages reference endpoint."""
 
 from typing import Optional
-from .base import ApiResult, Resource
+from .base import ApiResult, AsyncResource, Resource
 from ..responses import LanguagesResponse
 
 
@@ -14,3 +14,11 @@ class Languages(Resource):
     def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return all supported languages (``GET /languages/list.json``)."""
         return self._get("/languages/list.json", etag=etag, model=LanguagesResponse)
+
+
+class AsyncLanguages(AsyncResource):
+    """Async version of :class:`Languages`."""
+
+    async def list(self, etag: Optional[str] = None) -> ApiResult:
+        """Return all supported languages (``GET /languages/list.json``)."""
+        return await self._get("/languages/list.json", etag=etag, model=LanguagesResponse)

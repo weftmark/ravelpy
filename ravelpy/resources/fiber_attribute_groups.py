@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Fiber Attribute Groups reference endpoints."""
 
 from typing import Optional
-from .base import ApiResult, Resource
+from .base import ApiResult, AsyncResource, Resource
 from ..responses import FiberAttributeGroupsResponse, FiberAttributesResponse, FiberCategoriesResponse
 
 
@@ -27,3 +27,19 @@ class FiberAttributeGroups(Resource):
     def categories(self, etag: Optional[str] = None) -> ApiResult:
         """Return all fiber categories (``GET /fiber_categories.json``)."""
         return self._get("/fiber_categories.json", etag=etag, model=FiberCategoriesResponse)
+
+
+class AsyncFiberAttributeGroups(AsyncResource):
+    """Async version of :class:`FiberAttributeGroups`."""
+
+    async def list(self, etag: Optional[str] = None) -> ApiResult:
+        """Return all fiber attribute groups (``GET /fiber_attribute_groups/list.json``)."""
+        return await self._get("/fiber_attribute_groups/list.json", etag=etag, model=FiberAttributeGroupsResponse)
+
+    async def attributes(self, etag: Optional[str] = None) -> ApiResult:
+        """Return all fiber attributes (``GET /fiber_attributes.json``)."""
+        return await self._get("/fiber_attributes.json", etag=etag, model=FiberAttributesResponse)
+
+    async def categories(self, etag: Optional[str] = None) -> ApiResult:
+        """Return all fiber categories (``GET /fiber_categories.json``)."""
+        return await self._get("/fiber_categories.json", etag=etag, model=FiberCategoriesResponse)

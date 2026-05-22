@@ -1,4 +1,4 @@
-"""Base resource class and shared return-type alias used by all resource sub-clients."""
+"""Base resource classes and shared return-type alias used by all resource sub-clients."""
 
 import httpx
 from typing import Any, Optional, Type
@@ -18,16 +18,34 @@ ApiResult = tuple[Any, Optional[str], Optional[dict]]
   alongside a non-``None`` ``parsed``; ``None`` on HTTP 304.
 """
 
+BASE_URL = "https://api.ravelry.com"
+
+
+def _process_response(
+    response: httpx.Response,
+    etag: Optional[str],
+    model: Optional[Type[BaseModel]],
+) -> ApiResult:
+    returned_etag = response.headers.get("ETag")
+    if response.status_code == 304:
+        return None, etag, None
+    if not response.is_success:
+        raise RavelryAPIError(response.status_code, response.text)
+    raw = response.json()
+    if model is not None:
+        try:
+            parsed = model.model_validate(raw)
+        except Exception:
+            parsed = raw
+    else:
+        parsed = raw
+    return parsed, returned_etag, raw
+
 
 class Resource:
-    """Base class for all Ravelry resource sub-clients.
+    """Base class for all synchronous Ravelry resource sub-clients."""
 
-    Subclasses call :meth:`_get` with the API path, optional query parameters,
-    an optional ETag for conditional requests, and an optional Pydantic model
-    class to parse the response into.
-    """
-
-    BASE_URL = "https://api.ravelry.com"
+    BASE_URL = BASE_URL
 
     def __init__(self, session: httpx.Client) -> None:
         """
@@ -50,7 +68,6 @@ class Resource:
             params: Query parameters; ``None`` values are stripped before sending.
             etag:   If provided, sent as ``If-None-Match`` for conditional caching.
             model:  Pydantic model class to validate the response body against.
-                    Falls back to the raw dict if validation raises.
 
         Returns:
             :data:`ApiResult` 3-tuple ``(parsed, etag, raw)``.
@@ -62,17 +79,44 @@ class Resource:
         clean_params = {k: v for k, v in (params or {}).items() if v is not None}
         headers = {"If-None-Match": etag} if etag else {}
         response = self._session.get(url, params=clean_params, headers=headers)
-        returned_etag = response.headers.get("ETag")
-        if response.status_code == 304:
-            return None, etag, None
-        if not response.is_success:
-            raise RavelryAPIError(response.status_code, response.text)
-        raw = response.json()
-        if model is not None:
-            try:
-                parsed = model.model_validate(raw)
-            except Exception:
-                parsed = raw
-        else:
-            parsed = raw
-        return parsed, returned_etag, raw
+        return _process_response(response, etag, model)
+
+
+class AsyncResource:
+    """Base class for all asynchronous Ravelry resource sub-clients."""
+
+    BASE_URL = BASE_URL
+
+    def __init__(self, session: httpx.AsyncClient) -> None:
+        """
+        Args:
+            session: Authenticated :class:`httpx.AsyncClient` shared across all resources.
+        """
+        self._session = session
+
+    async def _get(
+        self,
+        path: str,
+        params: Optional[dict] = None,
+        etag: Optional[str] = None,
+        model: Optional[Type[BaseModel]] = None,
+    ) -> ApiResult:
+        """Execute an async GET request and return ``(parsed, etag, raw)``.
+
+        Args:
+            path:   API path relative to ``BASE_URL``.
+            params: Query parameters; ``None`` values are stripped before sending.
+            etag:   If provided, sent as ``If-None-Match`` for conditional caching.
+            model:  Pydantic model class to validate the response body against.
+
+        Returns:
+            :data:`ApiResult` 3-tuple ``(parsed, etag, raw)``.
+
+        Raises:
+            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx, non-304 response.
+        """
+        url = f"{self.BASE_URL}{path}"
+        clean_params = {k: v for k, v in (params or {}).items() if v is not None}
+        headers = {"If-None-Match": etag} if etag else {}
+        response = await self._session.get(url, params=clean_params, headers=headers)
+        return _process_response(response, etag, model)

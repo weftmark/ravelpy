@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Draft Patterns API endpoints."""
 
 from typing import Optional
-from .base import ApiResult, Resource
+from .base import ApiResult, AsyncResource, Resource
 from ..responses import DraftPatternResponse, DraftPatternsResponse
 
 
@@ -42,3 +42,15 @@ class Drafts(Resource):
         yet (live testing with this account returned empty list).  See GitHub issue #1.
         """
         return self._get(f"/drafts/patterns/{pattern_id}.json", etag=etag, model=DraftPatternResponse)
+
+
+class AsyncDrafts(AsyncResource):
+    """Async version of :class:`Drafts`."""
+
+    async def list(self, business_id: Optional[int] = None, etag: Optional[str] = None) -> ApiResult:
+        """Return the current user's draft patterns (``GET /drafts/patterns/list.json``)."""
+        return await self._get("/drafts/patterns/list.json", {"business_id": business_id}, etag=etag, model=DraftPatternsResponse)
+
+    async def show(self, pattern_id: int, etag: Optional[str] = None) -> ApiResult:
+        """Return a single draft pattern (``GET /drafts/patterns/{id}.json``)."""
+        return await self._get(f"/drafts/patterns/{pattern_id}.json", etag=etag, model=DraftPatternResponse)

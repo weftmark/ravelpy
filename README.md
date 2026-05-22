@@ -111,6 +111,25 @@ print(raw["user"]["username"])
 
 ---
 
+## Async client
+
+`AsyncRavelryClient` is a drop-in async replacement — all the same sub-clients and methods, but every call is a coroutine:
+
+```python
+import asyncio
+from ravelpy import AsyncRavelryClient
+
+async def main():
+    async with AsyncRavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") as client:
+        data, etag, raw = await client.patterns.search(query="colorwork")
+        for p in raw["patterns"]:
+            print(p["name"])
+
+asyncio.run(main())
+```
+
+---
+
 ## ETag caching
 
 Every method returns `(model, etag, raw_dict)`. Pass the `etag` back on subsequent calls — the server returns `304 Not Modified` and both `model` and `raw_dict` will be `None`.
