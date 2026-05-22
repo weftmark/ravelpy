@@ -1,5 +1,5 @@
 """
-ravelpy — read-only Python client for the Ravelry API.
+ravelpy — Python client for the Ravelry API.
 
 Exposes :class:`RavelryClient` as the single entry point plus all Pydantic
 entity models so callers can import them directly from this package.

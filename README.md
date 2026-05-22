@@ -173,7 +173,7 @@ Open `http://localhost:8000/docs`.
 
 - [Ravelry API documentation](https://www.ravelry.com/api)
 - [Ravelry Developer Agreement](https://www.ravelry.com/api#terms)
-- [Report an issue](https://github.com/gx1400/ravelry-api/issues)
+- [Report an issue](https://github.com/weftmark/ravelpy/issues)
 
 ## License
 
