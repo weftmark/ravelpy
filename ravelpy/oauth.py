@@ -20,10 +20,10 @@ Typical local-testing workflow::
     from ravelpy import RavelryClient
     tokens = load_tokens(Path(".oauth_tokens.json"))
     client = RavelryClient.from_oauth_token(tokens.access_token)
-    me, _, _ = client.people.me()
+    me, _, _ = await client.people.me()
 
     # 3. Refresh when the 24-hour token expires
-    new_tokens = oauth.refresh(tokens.refresh_token)
+    new_tokens = await oauth.refresh(tokens.refresh_token)
     save_tokens(new_tokens, Path(".oauth_tokens.json"))
 """
 
@@ -132,9 +132,13 @@ class TokenResponse:
 class OAuthClient:
     """Manages the Ravelry OAuth 2.0 authorization code flow.
 
-    For local testing, :meth:`local_flow` starts a one-shot HTTP server on
-    ``localhost`` to capture the authorization callback automatically — no
-    manual copy-pasting of codes required.
+    :meth:`auth_url` and :meth:`local_flow` are synchronous (the browser
+    redirect flow runs a blocking HTTP server by nature).  :meth:`exchange_code`
+    and :meth:`refresh` are async and use :class:`httpx.AsyncClient`.
+
+    For local development, :meth:`local_flow` opens the browser, captures the
+    callback, and returns tokens ready to pass to
+    :meth:`~ravelpy.RavelryClient.from_oauth_token`.
     """
 
     def __init__(
@@ -182,9 +186,9 @@ class OAuthClient:
         }
         return f"{AUTH_URL}?{urllib.parse.urlencode(params)}", state
 
-    # ── Token operations ────────────────────────────────────────────────────
+    # ── Token operations (async) ────────────────────────────────────────────
 
-    def exchange_code(self, code: str) -> TokenResponse:
+    async def exchange_code(self, code: str) -> TokenResponse:
         """Exchange an authorization code for access and refresh tokens.
 
         Args:
@@ -193,19 +197,20 @@ class OAuthClient:
         Raises:
             httpx.HTTPStatusError: If the token endpoint returns a non-2xx status.
         """
-        response = httpx.post(
-            TOKEN_URL,
-            data={
-                "grant_type": "authorization_code",
-                "code": code,
-                "redirect_uri": self.redirect_uri,
-            },
-            auth=(self.client_id, self.client_secret),
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                TOKEN_URL,
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": self.redirect_uri,
+                },
+                auth=(self.client_id, self.client_secret),
+            )
         response.raise_for_status()
         return TokenResponse(response.json())
 
-    def refresh(self, refresh_token: str) -> TokenResponse:
+    async def refresh(self, refresh_token: str) -> TokenResponse:
         """Obtain a new access token using a refresh token.
 
         Args:
@@ -216,25 +221,26 @@ class OAuthClient:
         Raises:
             httpx.HTTPStatusError: If the token endpoint returns a non-2xx status.
         """
-        response = httpx.post(
-            TOKEN_URL,
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": refresh_token,
-            },
-            auth=(self.client_id, self.client_secret),
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                TOKEN_URL,
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": refresh_token,
+                },
+                auth=(self.client_id, self.client_secret),
+            )
         response.raise_for_status()
         return TokenResponse(response.json())
 
-    # ── Local browser flow ──────────────────────────────────────────────────
+    # ── Local browser flow (sync — inherently blocking) ─────────────────────
 
     def local_flow(self, scopes: list[str]) -> TokenResponse:
         """Run the full authorization code flow using a local callback server.
 
         Opens the user's browser to the Ravelry authorization page, then starts a
         temporary HTTP server on ``localhost`` to receive the redirect callback.
-        Once the code arrives it is exchanged for tokens and the server stops.
+        Once the code arrives it is exchanged synchronously and the server stops.
 
         The redirect URI registered in the Ravelry developer portal must match
         ``self.redirect_uri`` exactly (default: ``http://localhost:8080/callback``).
@@ -255,7 +261,6 @@ class OAuthClient:
         path = parsed.path or "/callback"
 
         captured: dict = {}
-        oauth_client = self  # closure reference
 
         class _CallbackHandler(http.server.BaseHTTPRequestHandler):
             def do_GET(self) -> None:
@@ -286,7 +291,7 @@ class OAuthClient:
                 self.wfile.write(body)
 
             def log_message(self, fmt: str, *args: object) -> None:
-                pass  # silence per-request logs
+                pass
 
         server = http.server.HTTPServer(("localhost", port), _CallbackHandler)
         server._done = False  # type: ignore[attr-defined]
@@ -302,76 +307,9 @@ class OAuthClient:
         if "error" in captured:
             raise RuntimeError(f"OAuth authorization failed: {captured['error']}")
 
-        return self.exchange_code(captured["code"])
-
-
-class AsyncOAuthClient:
-    """Async variant of :class:`OAuthClient` for token exchange and refresh.
-
-    Uses :class:`httpx.AsyncClient` for non-blocking HTTP calls.  The browser
-    redirect flow (:meth:`OAuthClient.local_flow`) is synchronous by nature
-    (it runs a blocking HTTP server); use :class:`OAuthClient` for that step,
-    then pass the resulting tokens to an :class:`~ravelpy.AsyncRavelryClient`.
-    """
-
-    def __init__(
-        self,
-        client_id: str,
-        client_secret: str,
-        redirect_uri: str = DEFAULT_REDIRECT_URI,
-    ) -> None:
-        """
-        Args:
-            client_id:     OAuth client ID from the Ravelry developer portal.
-            client_secret: OAuth client secret from the Ravelry developer portal.
-            redirect_uri:  Must match a URI registered in the developer portal.
-        """
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.redirect_uri = redirect_uri
-
-    async def exchange_code(self, code: str) -> TokenResponse:
-        """Exchange an authorization code for access and refresh tokens (async).
-
-        Args:
-            code: The ``code`` query parameter received at the redirect URI.
-
-        Raises:
-            httpx.HTTPStatusError: If the token endpoint returns a non-2xx status.
-        """
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                TOKEN_URL,
-                data={
-                    "grant_type": "authorization_code",
-                    "code": code,
-                    "redirect_uri": self.redirect_uri,
-                },
-                auth=(self.client_id, self.client_secret),
-            )
-        response.raise_for_status()
-        return TokenResponse(response.json())
-
-    async def refresh(self, refresh_token: str) -> TokenResponse:
-        """Obtain a new access token using a refresh token (async).
-
-        Args:
-            refresh_token: The refresh token from a previous token exchange.
-
-        Raises:
-            httpx.HTTPStatusError: If the token endpoint returns a non-2xx status.
-        """
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                TOKEN_URL,
-                data={
-                    "grant_type": "refresh_token",
-                    "refresh_token": refresh_token,
-                },
-                auth=(self.client_id, self.client_secret),
-            )
-        response.raise_for_status()
-        return TokenResponse(response.json())
+        # local_flow calls exchange_code synchronously via asyncio.run
+        import asyncio
+        return asyncio.run(self.exchange_code(captured["code"]))
 
 
 # ── Token persistence helpers ───────────────────────────────────────────────

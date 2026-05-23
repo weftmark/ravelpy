@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Stores API endpoints."""
 
 from typing import Optional
-from .base import ApiResult, AsyncResource, Resource
+from .base import ApiResult, Resource
 from ..responses import StoreProductsResponse, StoresResponse
 
 
@@ -25,15 +25,15 @@ class Stores(Resource):
     See ``docs/authentication.md`` for full scope test results.
     """
 
-    def list(self, etag: Optional[str] = None) -> ApiResult:
+    async def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return the current user's stores (``GET /stores/list.json``).
 
         Requires ``patternstore-read`` or ``patternstore-write`` OAuth scope.
         Scope matrix result: 200 with ``patternstore-read``. See ``docs/authentication.md``.
         """
-        return self._get("/stores/list.json", etag=etag, model=StoresResponse)
+        return await self._get("/stores/list.json", etag=etag, model=StoresResponse)
 
-    def products(
+    async def products(
         self,
         store_id: int,
         page: Optional[int] = None,
@@ -48,9 +48,9 @@ class Stores(Resource):
         ``patternstore-read``; may require a valid store ID owned by the user, or
         additional parameters.  See GitHub issue #2.
         """
-        return self._get(f"/stores/{store_id}/products.json", {"page": page, "page_size": page_size}, etag=etag, model=StoreProductsResponse)
+        return await self._get(f"/stores/{store_id}/products.json", {"page": page, "page_size": page_size}, etag=etag, model=StoreProductsResponse)
 
-    def purchases(
+    async def purchases(
         self,
         store_id: int,
         page: Optional[int] = None,
@@ -65,32 +65,4 @@ class Stores(Resource):
         TODO: obtain a ``patternstore-purchases`` token and validate; currently returns
         403 under all tested scopes.  See GitHub issue #2.
         """
-        return self._get(f"/stores/{store_id}/purchases.json", {"page": page, "page_size": page_size}, etag=etag)
-
-
-class AsyncStores(AsyncResource):
-    """Async version of :class:`Stores`."""
-
-    async def list(self, etag: Optional[str] = None) -> ApiResult:
-        """Return the current user's stores (``GET /stores/list.json``)."""
-        return await self._get("/stores/list.json", etag=etag, model=StoresResponse)
-
-    async def products(
-        self,
-        store_id: int,
-        page: Optional[int] = None,
-        page_size: Optional[int] = None,
-        etag: Optional[str] = None,
-    ) -> ApiResult:
-        """Return products for a store (``GET /stores/{id}/products.json``)."""
-        return await self._get(f"/stores/{store_id}/products.json", {"page": page, "page_size": page_size}, etag=etag, model=StoreProductsResponse)
-
-    async def purchases(
-        self,
-        store_id: int,
-        page: Optional[int] = None,
-        page_size: Optional[int] = None,
-        etag: Optional[str] = None,
-    ) -> ApiResult:
-        """Return purchases for a store (``GET /stores/{id}/purchases.json``)."""
         return await self._get(f"/stores/{store_id}/purchases.json", {"page": page, "page_size": page_size}, etag=etag)

@@ -2,7 +2,6 @@
 
 import pytest
 import respx
-import httpx
 
 from ravelpy import RavelryClient
 

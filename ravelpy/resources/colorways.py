@@ -1,6 +1,6 @@
 """Sub-client stub for colorway-related helpers."""
 
-from .base import AsyncResource, Resource
+from .base import Resource
 
 
 class Colorways(Resource):
@@ -18,7 +18,3 @@ class Colorways(Resource):
         Basic Auth and OAuth 2.0 Bearer tokens).  No colorway-specific photo
         helper is provided for this reason.
     """
-
-
-class AsyncColorways(AsyncResource):
-    """Async version of :class:`Colorways`."""

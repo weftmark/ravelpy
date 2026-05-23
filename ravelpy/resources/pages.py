@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Pages API endpoints."""
 
 from typing import Optional
-from .base import ApiResult, AsyncResource, Resource
+from .base import ApiResult, Resource
 from ..responses import PageResponse
 
 
@@ -10,14 +10,6 @@ class Pages(Resource):
 
     Auth: *authenticated* — requires a personal key or OAuth 2.0.
     """
-
-    def show(self, page_id: int, etag: Optional[str] = None) -> ApiResult:
-        """Return a single page (``GET /pages/{id}.json``)."""
-        return self._get(f"/pages/{page_id}.json", etag=etag, model=PageResponse)
-
-
-class AsyncPages(AsyncResource):
-    """Async version of :class:`Pages`."""
 
     async def show(self, page_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single page (``GET /pages/{id}.json``)."""

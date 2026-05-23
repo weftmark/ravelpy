@@ -7,6 +7,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-23
+
+### Changed
+
+- `RavelryClient` is now fully async (previously `AsyncRavelryClient`). The old
+  synchronous `RavelryClient` has been removed. Every resource method must be
+  awaited: `data, etag, raw = await client.yarns.show(yarn_id=95245)`.
+- `OAuthClient.exchange_code()` and `OAuthClient.refresh()` are now `async`.
+  `auth_url()` and `local_flow()` remain synchronous. `AsyncOAuthClient` has
+  been removed — `OAuthClient` is the single class.
+
+### Removed
+
+- Synchronous `RavelryClient` — use the async `RavelryClient` with `await`.
+- `AsyncRavelryClient` — renamed to `RavelryClient`.
+- `AsyncOAuthClient` — merged into `OAuthClient`.
+- All `Async*` resource sub-client classes (`AsyncYarns`, `AsyncPatterns`, …)
+  — the canonical classes (`Yarns`, `Patterns`, …) are now async.
+- Sync `Resource` base class — `Resource` is now async-only.
+
 ## [0.2.4] - 2026-05-23
 
 ### Removed
