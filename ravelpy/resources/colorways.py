@@ -44,9 +44,10 @@ class Colorways(Resource):
             "/projects/search.json",
             {"yarn_id": yarn_id, "colorway_id": colorway_id, "page_size": 1},
         )
-        if raw is None:
+        if not raw:
             return None
-        fp = raw.get("first_photo")
+        projects = raw.get("projects") or []
+        fp = projects[0].get("first_photo") if projects else None
         return ColorwayPhoto(**fp) if fp else None
 
 
@@ -76,7 +77,8 @@ class AsyncColorways(AsyncResource):
             "/projects/search.json",
             {"yarn_id": yarn_id, "colorway_id": colorway_id, "page_size": 1},
         )
-        if raw is None:
+        if not raw:
             return None
-        fp = raw.get("first_photo")
+        projects = raw.get("projects") or []
+        fp = projects[0].get("first_photo") if projects else None
         return ColorwayPhoto(**fp) if fp else None

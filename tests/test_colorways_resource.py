@@ -19,7 +19,7 @@ class TestGetPhoto:
     def test_returns_colorway_photo_when_present(self, client, mock_api):
         mock_api.get("/projects/search.json").respond(
             200,
-            json={"projects": [], "first_photo": PHOTO_PAYLOAD},
+            json={"projects": [{"first_photo": PHOTO_PAYLOAD}], "paginator": {"page": 1}},
         )
         photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
         assert isinstance(photo, ColorwayPhoto)
@@ -30,7 +30,7 @@ class TestGetPhoto:
     def test_returns_none_when_first_photo_is_null(self, client, mock_api):
         mock_api.get("/projects/search.json").respond(
             200,
-            json={"projects": [], "first_photo": None},
+            json={"projects": [{"first_photo": None}], "paginator": {"page": 1}},
         )
         photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
         assert photo is None
@@ -38,13 +38,23 @@ class TestGetPhoto:
     def test_returns_none_when_first_photo_absent(self, client, mock_api):
         mock_api.get("/projects/search.json").respond(
             200,
-            json={"projects": []},
+            json={"projects": [{}], "paginator": {"page": 1}},
+        )
+        photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
+        assert photo is None
+
+    def test_returns_none_when_projects_empty(self, client, mock_api):
+        mock_api.get("/projects/search.json").respond(
+            200,
+            json={"projects": [], "paginator": {"page": 1}},
         )
         photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
         assert photo is None
 
     def test_sends_correct_query_params(self, client, mock_api):
-        mock_api.get("/projects/search.json").respond(200, json={"projects": []})
+        mock_api.get("/projects/search.json").respond(
+            200, json={"projects": [], "paginator": {"page": 1}}
+        )
         client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
         url = str(mock_api.calls.last.request.url)
         assert "yarn_id=95245" in url
