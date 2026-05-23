@@ -1,4 +1,4 @@
-"""Base resource classes and shared return-type alias used by all resource sub-clients."""
+"""Base resource class and shared return-type alias used by all resource sub-clients."""
 
 import httpx
 from typing import Any, Optional, Type
@@ -43,47 +43,7 @@ def _process_response(
 
 
 class Resource:
-    """Base class for all synchronous Ravelry resource sub-clients."""
-
-    BASE_URL = BASE_URL
-
-    def __init__(self, session: httpx.Client) -> None:
-        """
-        Args:
-            session: Authenticated :class:`httpx.Client` shared across all resources.
-        """
-        self._session = session
-
-    def _get(
-        self,
-        path: str,
-        params: Optional[dict] = None,
-        etag: Optional[str] = None,
-        model: Optional[Type[BaseModel]] = None,
-    ) -> ApiResult:
-        """Execute a GET request and return ``(parsed, etag, raw)``.
-
-        Args:
-            path:   API path relative to ``BASE_URL`` (e.g. ``/yarns/1.json``).
-            params: Query parameters; ``None`` values are stripped before sending.
-            etag:   If provided, sent as ``If-None-Match`` for conditional caching.
-            model:  Pydantic model class to validate the response body against.
-
-        Returns:
-            :data:`ApiResult` 3-tuple ``(parsed, etag, raw)``.
-
-        Raises:
-            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx, non-304 response.
-        """
-        url = f"{self.BASE_URL}{path}"
-        clean_params = {k: v for k, v in (params or {}).items() if v is not None}
-        headers = {"If-None-Match": etag} if etag else {}
-        response = self._session.get(url, params=clean_params, headers=headers)
-        return _process_response(response, etag, model)
-
-
-class AsyncResource:
-    """Base class for all asynchronous Ravelry resource sub-clients."""
+    """Base class for all Ravelry resource sub-clients."""
 
     BASE_URL = BASE_URL
 
@@ -104,7 +64,7 @@ class AsyncResource:
         """Execute an async GET request and return ``(parsed, etag, raw)``.
 
         Args:
-            path:   API path relative to ``BASE_URL``.
+            path:   API path relative to ``BASE_URL`` (e.g. ``/yarns/1.json``).
             params: Query parameters; ``None`` values are stripped before sending.
             etag:   If provided, sent as ``If-None-Match`` for conditional caching.
             model:  Pydantic model class to validate the response body against.

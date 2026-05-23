@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Pattern Source Types reference endpoint."""
 
 from typing import Optional
-from .base import ApiResult, AsyncResource, Resource
+from .base import ApiResult, Resource
 from ..responses import PatternSourceTypesResponse
 
 
@@ -10,14 +10,6 @@ class PatternSourceTypes(Resource):
 
     Auth: public catalog data — any valid developer credentials (read-only key or higher).
     """
-
-    def list(self, etag: Optional[str] = None) -> ApiResult:
-        """Return all pattern source types (``GET /pattern_source_types/list.json``)."""
-        return self._get("/pattern_source_types/list.json", etag=etag, model=PatternSourceTypesResponse)
-
-
-class AsyncPatternSourceTypes(AsyncResource):
-    """Async version of :class:`PatternSourceTypes`."""
 
     async def list(self, etag: Optional[str] = None) -> ApiResult:
         """Return all pattern source types (``GET /pattern_source_types/list.json``)."""

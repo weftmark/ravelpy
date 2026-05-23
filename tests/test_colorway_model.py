@@ -84,7 +84,8 @@ class TestColorwayFields:
 class TestColorwayPhotosEmbedAlwaysEmpty:
     """Regression: Colorway.photos is always empty from the yarn embed."""
 
-    def test_yarn_embed_colorways_photos_empty(self, client, mock_api):
+    @pytest.mark.asyncio
+    async def test_yarn_embed_colorways_photos_empty(self, client, mock_api):
         payload = {
             "yarn": {"id": 95245, "name": "8/2 Unmercerized Cotton"},
             "colorways": [
@@ -92,35 +93,38 @@ class TestColorwayPhotosEmbedAlwaysEmpty:
             ],
         }
         mock_api.get("/yarns/95245.json").respond(200, json=payload)
-        data, _etag, _raw = client.yarns.show(yarn_id=95245, include="colorways")
+        data, _etag, _raw = await client.yarns.show(yarn_id=95245, include="colorways")
         assert data.colorways[0].photos == []
 
 
 class TestColorwayViaYarnsShow:
-    def test_show_with_include_sends_param(self, client, mock_api):
+    @pytest.mark.asyncio
+    async def test_show_with_include_sends_param(self, client, mock_api):
         payload = {
             "yarn": {"id": 95245, "name": "8/2 Unmercerized Cotton"},
             "colorways": [FULL_COLORWAY],
         }
         mock_api.get("/yarns/95245.json").respond(200, json=payload)
-        _data, _etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
+        _data, _etag, raw = await client.yarns.show(yarn_id=95245, include="colorways")
         request = mock_api.calls.last.request
         assert "include=colorways" in str(request.url)
         assert len(raw["colorways"]) == 1
 
-    def test_show_without_include_colorways_is_absent(self, client, mock_api):
+    @pytest.mark.asyncio
+    async def test_show_without_include_colorways_is_absent(self, client, mock_api):
         payload = {"yarn": {"id": 95245, "name": "8/2 Unmercerized Cotton"}}
         mock_api.get("/yarns/95245.json").respond(200, json=payload)
-        _data, _etag, raw = client.yarns.show(yarn_id=95245)
+        _data, _etag, raw = await client.yarns.show(yarn_id=95245)
         assert "colorways" not in raw
 
-    def test_parsed_result_colorways_populated(self, client, mock_api):
+    @pytest.mark.asyncio
+    async def test_parsed_result_colorways_populated(self, client, mock_api):
         payload = {
             "yarn": {"id": 95245, "name": "8/2 Unmercerized Cotton"},
             "colorways": [FULL_COLORWAY, DISCONTINUED_COLORWAY],
         }
         mock_api.get("/yarns/95245.json").respond(200, json=payload)
-        data, _etag, _raw = client.yarns.show(yarn_id=95245, include="colorways")
+        data, _etag, _raw = await client.yarns.show(yarn_id=95245, include="colorways")
         assert data.colorways is not None
         assert len(data.colorways) == 2
         active = [c for c in data.colorways if c.current_status is None]

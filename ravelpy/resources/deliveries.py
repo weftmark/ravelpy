@@ -1,7 +1,7 @@
 """Sub-client for Ravelry Deliveries API endpoints."""
 
 from typing import Optional
-from .base import ApiResult, AsyncResource, Resource
+from .base import ApiResult, Resource
 from ..responses import DeliveriesResponse
 
 
@@ -14,7 +14,7 @@ class Deliveries(Resource):
     read-only Basic Auth key cannot access delivery data.
     """
 
-    def list(
+    async def list(
         self,
         page: Optional[int] = None,
         page_size: Optional[int] = None,
@@ -25,17 +25,4 @@ class Deliveries(Resource):
         Requires ``deliveries-read`` OAuth scope (confirmed in API docs and scope matrix).
         Personal key grants this scope automatically.  See ``docs/authentication.md``.
         """
-        return self._get("/deliveries/list.json", {"page": page, "page_size": page_size}, etag=etag, model=DeliveriesResponse)
-
-
-class AsyncDeliveries(AsyncResource):
-    """Async version of :class:`Deliveries`."""
-
-    async def list(
-        self,
-        page: Optional[int] = None,
-        page_size: Optional[int] = None,
-        etag: Optional[str] = None,
-    ) -> ApiResult:
-        """Return the authenticated user's deliveries (``GET /deliveries/list.json``)."""
         return await self._get("/deliveries/list.json", {"page": page, "page_size": page_size}, etag=etag, model=DeliveriesResponse)

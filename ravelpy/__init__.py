@@ -7,9 +7,9 @@ entity models so callers can import them directly from this package.
 
 from importlib.metadata import PackageNotFoundError, version
 
-from .client import AsyncRavelryClient, RavelryClient
+from .client import RavelryClient
 from .exceptions import RavelryAPIError
-from .oauth import AsyncOAuthClient, OAuthClient, OAuthScope, TokenResponse, load_tokens, save_tokens
+from .oauth import OAuthClient, OAuthScope, TokenResponse, load_tokens, save_tokens
 from .models import (
     Activity,
     Ad,
@@ -112,10 +112,8 @@ except PackageNotFoundError:
 
 __all__ = [
     "RavelryClient",
-    "AsyncRavelryClient",
     "RavelryAPIError",
     "OAuthClient",
-    "AsyncOAuthClient",
     "OAuthScope",
     "TokenResponse",
     "load_tokens",

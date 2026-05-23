@@ -107,77 +107,87 @@ class TestAuthUrl:
 # ── OAuthClient.exchange_code ────────────────────────────────────────────────
 
 class TestExchangeCode:
-    def test_posts_to_token_url(self, oauth):
+    @pytest.mark.asyncio
+    async def test_posts_to_token_url(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            oauth.exchange_code("auth_code_xyz")
+            await oauth.exchange_code("auth_code_xyz")
             assert mock.calls.last.request.url == TOKEN_URL
 
-    def test_sends_grant_type(self, oauth):
+    @pytest.mark.asyncio
+    async def test_sends_grant_type(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            oauth.exchange_code("auth_code_xyz")
+            await oauth.exchange_code("auth_code_xyz")
             body = dict(urllib.parse.parse_qsl(mock.calls.last.request.content.decode()))
             assert body["grant_type"] == "authorization_code"
             assert body["code"] == "auth_code_xyz"
             assert body["redirect_uri"] == REDIRECT_URI
 
-    def test_uses_basic_auth(self, oauth):
+    @pytest.mark.asyncio
+    async def test_uses_basic_auth(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            oauth.exchange_code("auth_code_xyz")
+            await oauth.exchange_code("auth_code_xyz")
             auth_header = mock.calls.last.request.headers.get("authorization", "")
             assert auth_header.startswith("Basic ")
 
-    def test_returns_token_response(self, oauth):
+    @pytest.mark.asyncio
+    async def test_returns_token_response(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            result = oauth.exchange_code("auth_code_xyz")
+            result = await oauth.exchange_code("auth_code_xyz")
             assert isinstance(result, TokenResponse)
             assert result.access_token == "sample_access_token"
 
-    def test_raises_on_error_status(self, oauth):
+    @pytest.mark.asyncio
+    async def test_raises_on_error_status(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(401, json={"error": "invalid_client"})
             with pytest.raises(httpx.HTTPStatusError):
-                oauth.exchange_code("bad_code")
+                await oauth.exchange_code("bad_code")
 
 
 # ── OAuthClient.refresh ──────────────────────────────────────────────────────
 
 class TestRefresh:
-    def test_posts_to_token_url(self, oauth):
+    @pytest.mark.asyncio
+    async def test_posts_to_token_url(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            oauth.refresh("my_refresh_token")
+            await oauth.refresh("my_refresh_token")
             assert mock.calls.last.request.url == TOKEN_URL
 
-    def test_sends_grant_type(self, oauth):
+    @pytest.mark.asyncio
+    async def test_sends_grant_type(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            oauth.refresh("my_refresh_token")
+            await oauth.refresh("my_refresh_token")
             body = dict(urllib.parse.parse_qsl(mock.calls.last.request.content.decode()))
             assert body["grant_type"] == "refresh_token"
             assert body["refresh_token"] == "my_refresh_token"
 
-    def test_uses_basic_auth(self, oauth):
+    @pytest.mark.asyncio
+    async def test_uses_basic_auth(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            oauth.refresh("my_refresh_token")
+            await oauth.refresh("my_refresh_token")
             auth_header = mock.calls.last.request.headers.get("authorization", "")
             assert auth_header.startswith("Basic ")
 
-    def test_returns_token_response(self, oauth):
+    @pytest.mark.asyncio
+    async def test_returns_token_response(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
-            result = oauth.refresh("my_refresh_token")
+            result = await oauth.refresh("my_refresh_token")
             assert isinstance(result, TokenResponse)
 
-    def test_raises_on_error_status(self, oauth):
+    @pytest.mark.asyncio
+    async def test_raises_on_error_status(self, oauth):
         with respx.mock() as mock:
             mock.post(TOKEN_URL).respond(400, json={"error": "invalid_grant"})
             with pytest.raises(httpx.HTTPStatusError):
-                oauth.refresh("expired_token")
+                await oauth.refresh("expired_token")
 
 
 # ── Token persistence ─────────────────────────────────────────────────────────
@@ -206,19 +216,21 @@ class TestTokenPersistence:
 # ── RavelryClient.from_oauth_token ───────────────────────────────────────────
 
 class TestRavelryClientFromOAuthToken:
-    def test_sends_bearer_auth(self):
+    @pytest.mark.asyncio
+    async def test_sends_bearer_auth(self):
         client = RavelryClient.from_oauth_token("my_access_token")
         with respx.mock(base_url="https://api.ravelry.com", assert_all_called=False) as mock:
             mock.get("/color_families.json").respond(200, json={"color_families": []})
-            client.extras.color_families()
+            await client.extras.color_families()
             auth_header = mock.calls.last.request.headers.get("authorization", "")
             assert auth_header == "Bearer my_access_token"
 
-    def test_does_not_send_basic_auth(self):
+    @pytest.mark.asyncio
+    async def test_does_not_send_basic_auth(self):
         client = RavelryClient.from_oauth_token("my_access_token")
         with respx.mock(base_url="https://api.ravelry.com", assert_all_called=False) as mock:
             mock.get("/color_families.json").respond(200, json={"color_families": []})
-            client.extras.color_families()
+            await client.extras.color_families()
             auth_header = mock.calls.last.request.headers.get("authorization", "")
             assert not auth_header.startswith("Basic ")
 
@@ -227,10 +239,11 @@ class TestRavelryClientFromOAuthToken:
         for attr in ["patterns", "yarns", "people", "stash", "projects", "forums", "needles"]:
             assert hasattr(client, attr)
 
-    def test_normal_init_still_uses_basic_auth(self):
+    @pytest.mark.asyncio
+    async def test_normal_init_still_uses_basic_auth(self):
         client = RavelryClient(username="u", api_key="k")
         with respx.mock(base_url="https://api.ravelry.com", assert_all_called=False) as mock:
             mock.get("/color_families.json").respond(200, json={"color_families": []})
-            client.extras.color_families()
+            await client.extras.color_families()
             auth_header = mock.calls.last.request.headers.get("authorization", "")
             assert auth_header.startswith("Basic ")
