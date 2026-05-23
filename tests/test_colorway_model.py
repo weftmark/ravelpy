@@ -81,6 +81,21 @@ class TestColorwayFields:
         assert cw.id == FULL_COLORWAY["id"]
 
 
+class TestColorwayPhotosEmbedAlwaysEmpty:
+    """Regression: Colorway.photos is always empty from the yarn embed."""
+
+    def test_yarn_embed_colorways_photos_empty(self, client, mock_api):
+        payload = {
+            "yarn": {"id": 95245, "name": "8/2 Unmercerized Cotton"},
+            "colorways": [
+                {"id": 5294540, "name": "Kaki", "yarn_id": 95245},
+            ],
+        }
+        mock_api.get("/yarns/95245.json").respond(200, json=payload)
+        data, _etag, _raw = client.yarns.show(yarn_id=95245, include="colorways")
+        assert data.colorways[0].photos == []
+
+
 class TestColorwayViaYarnsShow:
     def test_show_with_include_sends_param(self, client, mock_api):
         payload = {

@@ -41,7 +41,7 @@ OAuth required; `scope` = specific OAuth scope needed.
 | `client.app` | `config`, `data` | personal |
 | `client.extras` | `color_families`, `search` | public |
 | `client.photos` | `dimensions`, `sizes`, `status` | personal |
-| `client.colorways` | `get_photo` | public |
+| `client.colorways` | *(see note below)* | public |
 
 ---
 
@@ -59,7 +59,7 @@ Key fields:
 | `name` | `str \| None` | Colour name (e.g. `"Kaki"`) |
 | `code` | `str \| None` | Yarn-company colour code |
 | `current_status` | `str \| None` | `None` = active; `"discontinued"` = no longer produced |
-| `photos` | `list[ColorwayPhoto]` | Always empty from the yarn embed; use `client.colorways.get_photo()` instead |
+| `photos` | `list[ColorwayPhoto]` | Always empty from the yarn embed — see note below |
 | `projects_count` | `int \| None` | Projects using this colorway |
 | `stashes_count` | `int \| None` | Stash entries using this colorway |
 
@@ -88,43 +88,23 @@ You can combine `colorways` with `availability` in a single call:
 data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways availability")
 ```
 
-### Colorway photos
+### Colorway photos — API limitation
 
-The `Colorway.photos` field is **never populated** by the yarn embed — the
-Ravelry API does not include photo data there. Photos are crowd-sourced from
-user project entries and are accessible through `client.colorways.get_photo()`:
+`Colorway.photos` is **always empty** from the yarn embed — the Ravelry API
+does not include photo data in that response.
 
-```python
-photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
-if photo:
-    print(photo.square_url)
-    print(photo.thumbnail_url)
-```
+There is no public Ravelry endpoint that returns colorway-specific photos:
 
-`get_photo` returns `None` when no user has photographed that colorway yet.
-It calls `GET /projects/search.json?yarn_id=X&colorway_id=Y&page_size=1` and
-extracts `first_photo` from the first project result — the same image Ravelry's
-website shows on colorway grid tiles.
+- `GET /colorways/{id}.json` redirects to the login page for all developer
+  credential types (Basic Auth and OAuth 2.0).
+- `GET /projects/search.json` accepts a `colorway_id` query parameter, but
+  the parameter is **silently ignored** by the API — every call returns the
+  same top project for the yarn regardless of the colorway requested.  This
+  was confirmed with both a read-only Basic Auth key and a user OAuth 2.0
+  Bearer token.
 
-`ColorwayPhoto` exposes the full set of fields the API returns:
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `square_url` | `str \| None` | Square crop URL |
-| `thumbnail_url` | `str \| None` | Small thumbnail URL |
-| `small_url` | `str \| None` | Small image URL |
-| `medium_url` | `str \| None` | Medium image URL |
-| `medium2_url` | `str \| None` | Medium image URL (alternate) |
-| `small2_url` | `str \| None` | Small image URL (alternate) |
-| `caption` | `str \| None` | Plain-text caption |
-| `caption_html` | `str \| None` | HTML caption |
-| `copyright_holder` | `str \| None` | Copyright attribution |
-| `aspect_ratio` | `float \| None` | Width ÷ height |
-| `id` | `int \| None` | Ravelry photo ID |
-| `sort_order` | `int \| None` | Display sort order |
-| `user_id` | `int \| None` | Uploader's user ID |
-| `x_offset` | `int \| None` | Square crop x offset |
-| `y_offset` | `int \| None` | Square crop y offset |
+`client.colorways` is retained as a namespace for future helpers if a valid
+endpoint is discovered, but it exposes no methods at this time.
 
 ---
 
