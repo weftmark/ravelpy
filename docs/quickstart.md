@@ -48,9 +48,23 @@ data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
 # Filter to active colorways via the parsed model
 active = [c for c in data.colorways if c.current_status is None]
 for cw in active:
-    thumb = cw.photos[0].thumbnail_url if cw.photos else None
-    print(f"{cw.code or '':8}  {cw.name}  {thumb or ''}")
+    print(f"{cw.code or '':8}  {cw.name}")
 ```
+
+## Fetch a colorway photo
+
+The colorway embed never includes photos. Use `client.colorways.get_photo()` to
+retrieve the crowd-sourced representative photo for a specific colorway:
+
+```python
+photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
+if photo:
+    print(photo.square_url)     # square crop
+    print(photo.thumbnail_url)  # small thumbnail
+    print(photo.small_url)      # medium size
+```
+
+Returns `None` when no user has photographed that colorway yet.
 
 ## Look up your profile
 

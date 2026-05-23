@@ -740,14 +740,22 @@ class Printing(BaseModel):
 
 
 class ColorwayPhoto(BaseModel):
-    """A photo thumbnail attached to a colorway."""
+    """A photo thumbnail for a colorway, returned by ``client.colorways.get_photo()``."""
 
     square_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
+    small_url: Optional[str] = None
 
 
 class Colorway(BaseModel):
-    """A named colour variant of a yarn."""
+    """A named colour variant of a yarn.
+
+    .. note::
+        The ``photos`` field is **never populated** by the yarn detail embed
+        (``GET /yarns/{id}.json?include=colorways``).  To fetch a representative
+        photo for a colorway use ``client.colorways.get_photo(yarn_id, colorway_id)``
+        instead.
+    """
 
     id: int
     name: Optional[str] = None

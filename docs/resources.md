@@ -41,6 +41,7 @@ OAuth required; `scope` = specific OAuth scope needed.
 | `client.app` | `config`, `data` | personal |
 | `client.extras` | `color_families`, `search` | public |
 | `client.photos` | `dimensions`, `sizes`, `status` | personal |
+| `client.colorways` | `get_photo` | public |
 
 ---
 
@@ -75,8 +76,6 @@ data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
 active = [c for c in data.colorways if c.current_status is None]
 for cw in active:
     print(cw.name, cw.code)
-    if cw.photos:
-        print(cw.photos[0].square_url)
 
 # via raw dict
 for cw in raw["colorways"]:
@@ -88,6 +87,26 @@ You can combine `colorways` with `availability` in a single call:
 ```python
 data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways availability")
 ```
+
+### Colorway photos
+
+The `Colorway.photos` field is **never populated** by the yarn embed — the
+Ravelry API does not include photo data there. Photos are crowd-sourced from
+user project entries and are accessible through `client.colorways.get_photo()`:
+
+```python
+photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
+if photo:
+    print(photo.square_url)
+    print(photo.thumbnail_url)
+```
+
+`get_photo` returns `None` when no user has photographed that colorway yet.
+It calls `GET /projects/search.json?yarn_id=X&colorway_id=Y&page_size=1` and
+extracts the `first_photo` field — the same image Ravelry's website shows on
+colorway grid tiles.
+
+`ColorwayPhoto` has three URL fields: `square_url`, `thumbnail_url`, and `small_url`.
 
 ---
 

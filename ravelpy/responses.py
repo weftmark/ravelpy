@@ -19,6 +19,7 @@ from .models import (
     BundledItem,
     ColorFamily,
     Colorway,
+    ColorwayPhoto,
     Comment,
     Craft,
     Delivery,
@@ -305,6 +306,7 @@ class ProjectsResponse(BaseModel):
 
     projects: list[Project]
     paginator: Optional[Paginator] = None
+    first_photo: Optional[ColorwayPhoto] = None
 
 
 # ---------------------------------------------------------------------------
