@@ -44,6 +44,53 @@ OAuth required; `scope` = specific OAuth scope needed.
 
 ---
 
+## Colorway model
+
+`Colorway` objects appear in `YarnResponse.colorways` when `yarns.show()` is
+called with `include="colorways"`. Each colorway represents one named colour
+variant of a yarn.
+
+Key fields:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `int` | Ravelry colorway ID |
+| `name` | `str \| None` | Colour name (e.g. `"Kaki"`) |
+| `code` | `str \| None` | Yarn-company colour code |
+| `current_status` | `str \| None` | `None` = active; `"discontinued"` = no longer produced |
+| `photos` | `list[ColorwayPhoto]` | Photo thumbnails — each has `square_url` and `thumbnail_url` |
+| `projects_count` | `int \| None` | Projects using this colorway |
+| `stashes_count` | `int \| None` | Stash entries using this colorway |
+
+### Fetching colorways
+
+Pass `include="colorways"` to `yarns.show()`. The colorways come back as a
+top-level `colorways` key in the raw response **and** populate
+`YarnResponse.colorways` in the parsed result:
+
+```python
+data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
+
+# via parsed model
+active = [c for c in data.colorways if c.current_status is None]
+for cw in active:
+    print(cw.name, cw.code)
+    if cw.photos:
+        print(cw.photos[0].square_url)
+
+# via raw dict
+for cw in raw["colorways"]:
+    print(cw["name"], cw.get("current_status"))
+```
+
+You can combine `colorways` with `availability` in a single call:
+
+```python
+data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways availability")
+```
+
+---
+
 ## Pack model
 
 `Pack` objects appear in `Stash.packs`, `Project.packs`, and the individual

@@ -36,6 +36,22 @@ for yarn in raw["yarns"]:
     print(yarn["name"], "by", yarn["yarn_company_name"])
 ```
 
+## Fetch yarn colorways
+
+Pass `include="colorways"` to `yarns.show()` to receive colorway data alongside
+the yarn detail. Active colorways have `current_status=None`; discontinued ones
+have `current_status="discontinued"`.
+
+```python
+data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
+
+# Filter to active colorways via the parsed model
+active = [c for c in data.colorways if c.current_status is None]
+for cw in active:
+    thumb = cw.photos[0].thumbnail_url if cw.photos else None
+    print(f"{cw.code or '':8}  {cw.name}  {thumb or ''}")
+```
+
 ## Look up your profile
 
 Requires a personal key or OAuth token.
