@@ -51,21 +51,6 @@ for cw in active:
     print(f"{cw.code or '':8}  {cw.name}")
 ```
 
-## Fetch a colorway photo
-
-The colorway embed never includes photos. Use `client.colorways.get_photo()` to
-retrieve the crowd-sourced representative photo for a specific colorway:
-
-```python
-photo = client.colorways.get_photo(yarn_id=95245, colorway_id=5294540)
-if photo:
-    print(photo.square_url)     # square crop
-    print(photo.thumbnail_url)  # small thumbnail
-    print(photo.small_url)      # medium size
-```
-
-Returns `None` when no user has photographed that colorway yet.
-
 ## Look up your profile
 
 Requires a personal key or OAuth token.
