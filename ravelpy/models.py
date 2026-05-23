@@ -739,6 +739,13 @@ class Printing(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class ColorwayPhoto(BaseModel):
+    """A photo thumbnail attached to a colorway."""
+
+    square_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+
+
 class Colorway(BaseModel):
     """A named colour variant of a yarn."""
 
@@ -746,10 +753,11 @@ class Colorway(BaseModel):
     name: Optional[str] = None
     code: Optional[str] = None
     yarn_id: Optional[int] = None
+    current_status: Optional[str] = None
     projects_count: Optional[int] = None
     stashes_count: Optional[int] = None
     usage_count: Optional[int] = None
-    photo_url: Optional[str] = None
+    photos: list[ColorwayPhoto] = []
 
 
 class YarnFiber(BaseModel):
