@@ -59,7 +59,7 @@ Key fields:
 | `name` | `str \| None` | Colour name (e.g. `"Kaki"`) |
 | `code` | `str \| None` | Yarn-company colour code |
 | `current_status` | `str \| None` | `None` = active; `"discontinued"` = no longer produced |
-| `photos` | `list[ColorwayPhoto]` | Photo thumbnails — each has `square_url` and `thumbnail_url` |
+| `photos` | `list[ColorwayPhoto]` | Always empty from the yarn embed; use `client.colorways.get_photo()` instead |
 | `projects_count` | `int \| None` | Projects using this colorway |
 | `stashes_count` | `int \| None` | Stash entries using this colorway |
 
@@ -103,10 +103,28 @@ if photo:
 
 `get_photo` returns `None` when no user has photographed that colorway yet.
 It calls `GET /projects/search.json?yarn_id=X&colorway_id=Y&page_size=1` and
-extracts the `first_photo` field — the same image Ravelry's website shows on
-colorway grid tiles.
+extracts `first_photo` from the first project result — the same image Ravelry's
+website shows on colorway grid tiles.
 
-`ColorwayPhoto` has three URL fields: `square_url`, `thumbnail_url`, and `small_url`.
+`ColorwayPhoto` exposes the full set of fields the API returns:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `square_url` | `str \| None` | Square crop URL |
+| `thumbnail_url` | `str \| None` | Small thumbnail URL |
+| `small_url` | `str \| None` | Small image URL |
+| `medium_url` | `str \| None` | Medium image URL |
+| `medium2_url` | `str \| None` | Medium image URL (alternate) |
+| `small2_url` | `str \| None` | Small image URL (alternate) |
+| `caption` | `str \| None` | Plain-text caption |
+| `caption_html` | `str \| None` | HTML caption |
+| `copyright_holder` | `str \| None` | Copyright attribution |
+| `aspect_ratio` | `float \| None` | Width ÷ height |
+| `id` | `int \| None` | Ravelry photo ID |
+| `sort_order` | `int \| None` | Display sort order |
+| `user_id` | `int \| None` | Uploader's user ID |
+| `x_offset` | `int \| None` | Square crop x offset |
+| `y_offset` | `int \| None` | Square crop y offset |
 
 ---
 

@@ -740,11 +740,28 @@ class Printing(BaseModel):
 
 
 class ColorwayPhoto(BaseModel):
-    """A photo thumbnail for a colorway, returned by ``client.colorways.get_photo()``."""
+    """A photo returned by ``client.colorways.get_photo()``.
 
+    All URL fields are optional — only fields present in the API response will
+    be populated.  The most commonly used sizes are ``square_url`` (100×100),
+    ``thumbnail_url`` (small square), and ``medium_url`` (full-width).
+    """
+
+    id: Optional[int] = None
+    sort_order: Optional[int] = None
+    user_id: Optional[int] = None
+    x_offset: Optional[int] = None
+    y_offset: Optional[int] = None
     square_url: Optional[str] = None
+    medium_url: Optional[str] = None
+    medium2_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
     small_url: Optional[str] = None
+    small2_url: Optional[str] = None
+    caption: Optional[str] = None
+    caption_html: Optional[str] = None
+    copyright_holder: Optional[str] = None
+    aspect_ratio: Optional[float] = None
 
 
 class Colorway(BaseModel):
