@@ -6,6 +6,7 @@ from .resources import (
     App,
     AsyncApp,
     AsyncBundledItems,
+    AsyncColorways,
     AsyncBundles,
     AsyncDeliveries,
     AsyncDesigners,
@@ -45,6 +46,7 @@ from .resources import (
     AsyncYarns,
     BundledItems,
     Bundles,
+    Colorways,
     Deliveries,
     Designers,
     Drafts,
@@ -180,6 +182,7 @@ class RavelryClient:
     def _setup_resources(self, session: httpx.Client) -> None:
         self.app = App(session)
         self.bundled_items = BundledItems(session)
+        self.colorways = Colorways(session)
         self.bundles = Bundles(session)
         self.deliveries = Deliveries(session)
         self.designers = Designers(session)
@@ -276,6 +279,7 @@ class AsyncRavelryClient:
         self._session = session
         self.app = AsyncApp(session)
         self.bundled_items = AsyncBundledItems(session)
+        self.colorways = AsyncColorways(session)
         self.bundles = AsyncBundles(session)
         self.deliveries = AsyncDeliveries(session)
         self.designers = AsyncDesigners(session)

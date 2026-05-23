@@ -3,6 +3,7 @@
 from .app import App, AsyncApp
 from .base import ApiResult, AsyncResource, Resource
 from .bundled_items import AsyncBundledItems, BundledItems
+from .colorways import AsyncColorways, Colorways
 from .bundles import AsyncBundles, Bundles
 from .deliveries import AsyncDeliveries, Deliveries
 from .designers import AsyncDesigners, Designers
@@ -47,6 +48,7 @@ __all__ = [
     "AsyncResource",
     # Sync sub-clients
     "App",
+    "Colorways",
     "BundledItems",
     "Bundles",
     "Deliveries",
@@ -87,6 +89,7 @@ __all__ = [
     "Yarns",
     # Async sub-clients
     "AsyncApp",
+    "AsyncColorways",
     "AsyncBundledItems",
     "AsyncBundles",
     "AsyncDeliveries",
