@@ -13,7 +13,9 @@ Before every merge to main (or direct push), verify:
 When tagging a release and publishing to PyPI:
 
 1. Bump `version` in `pyproject.toml` and `release` in `docs/conf.py` to the new version.
-2. Create a **GitHub Release** for the tag. The release body must include:
+2. Update `CHANGELOG.md` — move items from `[Unreleased]` into a new dated section and update the
+   comparison links at the bottom.
+3. Create a **GitHub Release** for the tag. The release body must include:
    - A plain-English summary of what changed (new features, bug fixes, removals)
    - A link to every issue or PR that is part of the release (e.g. `Closes #12`)
-3. Tag format: `vMAJOR.MINOR.PATCH` — pushing the tag triggers the PyPI publish workflow via GitHub Actions.
+4. Tag format: `vMAJOR.MINOR.PATCH` — pushing the tag triggers the PyPI publish workflow via GitHub Actions.

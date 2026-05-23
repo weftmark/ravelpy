@@ -50,6 +50,7 @@ dev = [
 Homepage = "https://github.com/weftmark/ravelpy"
 Repository = "https://github.com/weftmark/ravelpy"
 "Bug Tracker" = "https://github.com/weftmark/ravelpy/issues"
+Changelog = "https://github.com/weftmark/ravelpy/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ravelpy"]
