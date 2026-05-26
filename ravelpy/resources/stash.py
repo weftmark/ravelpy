@@ -51,6 +51,10 @@ class Stash(Resource):
         """Return a user's unified stash (``GET /people/{username}/stash/unified/list.json``)."""
         return await self._get(f"/people/{username}/stash/unified/list.json", {"page": page, "page_size": page_size}, etag=etag, model=UnifiedStashResponse)
 
+    async def create(self, username: str, payload: dict) -> ApiResult:
+        """Create a stash entry (``POST /people/{username}/stash/create.json``)."""
+        return await self._post(f"/people/{username}/stash/create.json", payload)
+
     async def comments(
         self,
         username: str,
