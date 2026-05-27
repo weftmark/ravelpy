@@ -291,6 +291,7 @@ class OAuthClient:
                 self.wfile.write(body)
 
             def log_message(self, fmt: str, *args: object) -> None:
+                # Suppress default request logging from BaseHTTPRequestHandler.
                 pass
 
         server = http.server.HTTPServer(("localhost", port), _CallbackHandler)
