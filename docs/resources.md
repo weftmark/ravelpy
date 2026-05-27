@@ -16,7 +16,7 @@ OAuth required; `scope` = specific OAuth scope needed.
 | `client.reference` | `color_families`, `fiber_attributes`, `fiber_categories`, `yarn_weights`, `yarn_attribute_groups`, `pattern_attributes`, `pattern_categories`, `pattern_source_types`, `languages`, `photo_sizes` | public |
 | `client.people` | `me`, `show`, `comments` | personal |
 | `client.projects` | `search`, `list`, `show`, `comments`, `crafts`, `statuses` | `search`/`list`/`crafts`/`statuses` → public; others → personal |
-| `client.stash` | `list`, `search`, `unified_list`, `show`, `comments` | personal |
+| `client.stash` | `list`, `search`, `unified_list`, `show`, `comments`, `create` | personal / OAuth |
 | `client.queue` | `list`, `show` | public (returns empty for other users) |
 | `client.favorites` | `list`, `show` | personal |
 | `client.fiber` | `show`, `comments` | public |
@@ -159,3 +159,42 @@ print(f"Page {paginator['page']} of {paginator['last_page']}")
 
 Every method accepts an optional `etag` keyword argument. See
 [Quickstart](quickstart.md) for a full example.
+
+---
+
+## Writing stash entries
+
+`Stash.create()` is the first write method in ravelpy. It requires a personal
+key or an OAuth 2.0 Bearer token (the `offline` scope is sufficient).
+
+```python
+from ravelpy import RavelryClient
+
+async with RavelryClient.from_oauth_token(access_token) as client:
+    _, _, raw = await client.stash.create("your_username", {
+        "yarn_id": 95245,
+        "colorway_name": "Natural",
+        "dye_lot": "A42",
+        "notes": "Bought at local yarn store",
+        "skeins": 3,
+        "grams_per_skein": 100,
+        "yards_per_skein": 220,
+    })
+    stash_id = raw["stash"]["id"]
+    print(f"Created stash entry #{stash_id}")
+```
+
+Common `payload` fields:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `yarn_id` | `int` | **Required.** Ravelry yarn ID. |
+| `colorway_name` | `str` | Colour name as shown on the label. |
+| `dye_lot` | `str` | Dye lot identifier. |
+| `notes` | `str` | Free-text notes. |
+| `stash_status_id` | `int` | `1` = in stock, `2` = used up, `3` = gifted/sold. |
+| `skeins` | `float` | Number of skeins. |
+| `grams_per_skein` | `float` | Weight per skein in grams. |
+| `yards_per_skein` | `float` | Length per skein in yards. |
+
+The response envelope is `{"stash": {...}}` — `raw["stash"]["id"]` is the new entry's ID.

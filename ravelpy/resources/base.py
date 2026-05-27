@@ -87,7 +87,20 @@ class Resource:
         payload: Optional[dict] = None,
         model: Optional[Type[BaseModel]] = None,
     ) -> ApiResult:
-        """Execute an async POST request and return ``(parsed, etag, raw)``."""
+        """Execute an async POST request and return ``(parsed, etag, raw)``.
+
+        Args:
+            path:    API path relative to ``BASE_URL`` (e.g. ``/people/you/stash/create.json``).
+            payload: JSON-serialisable dict sent as the request body.  Defaults to ``{}``.
+            model:   Pydantic model class to validate the response body against.
+
+        Returns:
+            :data:`ApiResult` 3-tuple ``(parsed, etag, raw)``.  ``etag`` is always
+            ``None`` — Ravelry does not send ETags on write responses.
+
+        Raises:
+            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx response.
+        """
         url = f"{self.BASE_URL}{path}"
         response = await self._session.post(url, json=payload or {})
         return _process_response(response, None, model)

@@ -7,6 +7,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-05-26
+
+### Added
+
+- `Resource._post()` — async POST helper on the base resource class, following
+  the same `(parsed, etag, raw)` return convention as `_get()`. No ETag is
+  included (Ravelry does not send one for write endpoints).
+- `Stash.create(username, payload)` — wraps `POST /people/{username}/stash/create.json`
+  for writing new stash entries. Requires OAuth (Bearer token); the `offline`
+  scope is sufficient. ([#16](https://github.com/weftmark/ravelpy/issues/16))
+
 ## [0.3.0] - 2026-05-23
 
 ### Changed
@@ -115,7 +126,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `OAuthClient` for authorization code exchange and token refresh.
 - Sphinx documentation published to Read the Docs.
 
-[Unreleased]: https://github.com/weftmark/ravelpy/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/weftmark/ravelpy/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/weftmark/ravelpy/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/weftmark/ravelpy/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/weftmark/ravelpy/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/weftmark/ravelpy/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/weftmark/ravelpy/compare/v0.2.1...v0.2.2

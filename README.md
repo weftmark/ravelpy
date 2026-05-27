@@ -87,45 +87,42 @@ See [docs/authentication.md](docs/authentication.md) for the full OAuth scope li
 
 ## Quickstart
 
-All endpoints are accessed through sub-client attributes on `RavelryClient`:
-
-```python
-from ravelpy import RavelryClient
-
-client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key")
-
-# Search for free sock patterns
-data, etag, raw = client.patterns.search(query="socks", weight="fingering", availability="free")
-for p in raw["patterns"]:
-    print(p["name"])
-
-# Get a specific yarn
-data, etag, raw = client.yarns.show(yarn_id=90897)
-print(raw["yarn"]["name"])
-
-# Look up your own profile (requires personal key or OAuth)
-personal_client = RavelryClient(username="your_username", api_key="your_personal_key")
-data, etag, raw = personal_client.people.me()
-print(raw["user"]["username"])
-```
-
----
-
-## Async client
-
-`AsyncRavelryClient` is a drop-in async replacement — all the same sub-clients and methods, but every call is a coroutine:
+`RavelryClient` is async-only. Use it as an async context manager:
 
 ```python
 import asyncio
-from ravelpy import AsyncRavelryClient
+from ravelpy import RavelryClient
 
 async def main():
-    async with AsyncRavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") as client:
-        data, etag, raw = await client.patterns.search(query="colorwork")
+    async with RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") as client:
+        # Search for free sock patterns
+        data, etag, raw = await client.patterns.search(
+            query="socks", weight="fingering", availability="free"
+        )
         for p in raw["patterns"]:
             print(p["name"])
 
+        # Get a specific yarn
+        data, etag, raw = await client.yarns.show(yarn_id=90897)
+        print(raw["yarn"]["name"])
+
 asyncio.run(main())
+```
+
+For a personal key or OAuth token (required for write endpoints and user data):
+
+```python
+async with RavelryClient(username="your_username", api_key="your_personal_key") as client:
+    data, etag, raw = await client.people.me()
+    print(raw["user"]["username"])
+
+    # Add a yarn to your stash
+    _, _, raw = await client.stash.create("your_username", {
+        "yarn_id": 95245,
+        "colorway_name": "Natural",
+        "skeins": 3,
+    })
+    print("New stash ID:", raw["stash"]["id"])
 ```
 
 ---
@@ -156,7 +153,7 @@ if data is None:
 | `client.reference` | color families, fiber attributes/categories, yarn weights/attributes, pattern attributes/categories, pattern source types, languages, photo sizes |
 | `client.people` | me, show, comments |
 | `client.projects` | search, list, show, comments, crafts, statuses |
-| `client.stash` | list, search, unified_list, show, comments |
+| `client.stash` | list, search, unified_list, show, comments, **create** |
 | `client.queue` | list, show |
 | `client.favorites` | list, show |
 | `client.fiber` | show, comments |

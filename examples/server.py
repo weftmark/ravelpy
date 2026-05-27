@@ -1,5 +1,5 @@
 """
-Ravelry API proxy server — read-only access with interactive Swagger UI.
+Ravelry API proxy server with interactive Swagger UI.
 
 Run:
     uvicorn server:app --reload
@@ -15,6 +15,7 @@ from typing import Annotated, Optional
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Path, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from ravelpy import RavelryAPIError, RavelryClient
 from ravelpy.responses import (
@@ -636,6 +637,17 @@ async def get_project_comments(
 stash_tag = "Stash"
 
 
+class StashCreateIn(BaseModel):
+    yarn_id: int
+    colorway_name: Optional[str] = None
+    dye_lot: Optional[str] = None
+    notes: Optional[str] = None
+    stash_status_id: Optional[int] = None
+    skeins: Optional[float] = None
+    grams_per_skein: Optional[float] = None
+    yards_per_skein: Optional[float] = None
+
+
 @app.get("/people/{username}/stash", tags=[stash_tag], summary="List a user's stash", response_model=StashListResponse)
 async def get_stash_list(
     c: ClientDep,
@@ -644,6 +656,15 @@ async def get_stash_list(
     page_size: Optional[int] = Query(None, ge=1, le=100),
 ):
     return await _handle(lambda: c.stash.list(username=username, page=page, page_size=page_size))
+
+
+@app.post("/people/{username}/stash", tags=[stash_tag], summary="Create a stash entry", response_model=StashResponse)
+async def create_stash(
+    c: ClientDep,
+    username: str = Path(...),
+    body: StashCreateIn = ...,
+):
+    return await _handle(lambda: c.stash.create(username, body.model_dump(exclude_none=True)))
 
 
 @app.get("/people/{username}/stash/search", tags=[stash_tag], summary="Search a user's stash", response_model=StashListResponse)
