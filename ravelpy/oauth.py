@@ -297,7 +297,7 @@ class OAuthClient:
         server = http.server.HTTPServer(("localhost", port), _CallbackHandler)
         server._done = False  # type: ignore[attr-defined]
 
-        print(f"Opening browser for Ravelry authorization…")
+        print("Opening browser for Ravelry authorization…")
         print(f"If the browser does not open, visit:\n  {url}")
         webbrowser.open(url)
 
