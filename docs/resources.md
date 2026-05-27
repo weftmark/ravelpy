@@ -70,7 +70,7 @@ top-level `colorways` key in the raw response **and** populate
 `YarnResponse.colorways` in the parsed result:
 
 ```python
-data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways")
+data, etag, raw = await client.yarns.show(yarn_id=95245, include="colorways")
 
 # via parsed model
 active = [c for c in data.colorways if c.current_status is None]
@@ -85,7 +85,7 @@ for cw in raw["colorways"]:
 You can combine `colorways` with `availability` in a single call:
 
 ```python
-data, etag, raw = client.yarns.show(yarn_id=95245, include="colorways availability")
+data, etag, raw = await client.yarns.show(yarn_id=95245, include="colorways availability")
 ```
 
 ### Colorway photos — API limitation
@@ -136,7 +136,7 @@ field is `null` for thread and cone-weight yarns — use the property instead:
 ```python
 from ravelpy.models import Stash
 
-_, _, raw = client.stash.show(username="you", stash_id=123)
+_, _, raw = await client.stash.show(username="you", stash_id=123)
 stash = Stash(**raw["stash"])
 print(stash.total_skeins)
 ```
@@ -150,7 +150,7 @@ response includes a `paginator` dict with `page`, `page_size`, `results`,
 and `last_page` fields.
 
 ```python
-data, etag, raw = client.patterns.search(query="colorwork", page=1, page_size=100)
+data, etag, raw = await client.patterns.search(query="colorwork", page=1, page_size=100)
 paginator = raw.get("paginator", {})
 print(f"Page {paginator['page']} of {paginator['last_page']}")
 ```
