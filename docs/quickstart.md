@@ -129,6 +129,21 @@ async with RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") a
         print(e.status_code, e.message)
 ```
 
+## Add a yarn to your stash
+
+`Stash.create()` requires a personal key or OAuth token. Pass a dict of
+fields; `yarn_id` is the only required one.
+
+```python
+async with RavelryClient.from_oauth_token(access_token) as client:
+    _, _, raw = await client.stash.create("your_username", {
+        "yarn_id": 95245,
+        "colorway_name": "Natural",
+        "skeins": 3,
+    })
+    print("New stash ID:", raw["stash"]["id"])
+```
+
 ## OAuth Bearer tokens
 
 ```python
