@@ -80,3 +80,14 @@ class Resource:
         headers = {"If-None-Match": etag} if etag else {}
         response = await self._session.get(url, params=clean_params, headers=headers)
         return _process_response(response, etag, model)
+
+    async def _post(
+        self,
+        path: str,
+        payload: Optional[dict] = None,
+        model: Optional[Type[BaseModel]] = None,
+    ) -> ApiResult:
+        """Execute an async POST request and return ``(parsed, etag, raw)``."""
+        url = f"{self.BASE_URL}{path}"
+        response = await self._session.post(url, json=payload or {})
+        return _process_response(response, None, model)
