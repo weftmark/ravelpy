@@ -4,6 +4,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![codecov](https://codecov.io/gh/weftmark/ravelpy/branch/main/graph/badge.svg)](https://codecov.io/gh/weftmark/ravelpy)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=weftmark_ravelpy&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=weftmark_ravelpy)
+[![AI-DECLARATION: copilot](https://img.shields.io/badge/䷼%20AI--DECLARATION-copilot-fee2e2?labelColor=fee2e2)](AI-DECLARATION.md)
 
 Python client for the [Ravelry REST API](https://www.ravelry.com/api), supporting read-only Basic Auth
 (public catalog data), personal account keys (full authenticated access), and OAuth 2.0 (scoped delegated
@@ -14,6 +15,9 @@ access).
 > **Built with Claude AI**
 >
 > The requirements, architecture, and implementation of ravelpy were developed collaboratively with [Claude](https://claude.ai) by Anthropic. Claude wrote the majority of the code in this repository through an iterative conversation-driven process. This is disclosed prominently because we believe AI development transparency matters.
+>
+> The level of AI involvement is declared in [`AI-DECLARATION.md`](AI-DECLARATION.md) using the
+> [AI-DECLARATION.md](https://ai-declaration.md) standard (level: `copilot`).
 
 ---
 
