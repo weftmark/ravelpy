@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-17
+
 ### Added
 
 - `timeout=` keyword argument on `RavelryClient(...)` and
@@ -21,6 +23,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   connection errors, read timeouts and HTTP 429/502/503/504, with exponential
   backoff that honours `Retry-After` (capped at 30 s). Off by default; `POST`
   requests are never retried. ([#28](https://github.com/weftmark/ravelpy/issues/28))
+- `AI-DECLARATION.md` declaring AI involvement at the `copilot` level of the
+  [AI-DECLARATION.md](https://ai-declaration.md) standard, with a README badge.
+  ([#33](https://github.com/weftmark/ravelpy/pull/33))
 
 ### Changed
 
@@ -35,9 +40,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - CI now tests Python 3.11–3.14, the declared minimum dependency versions, and
   the built wheel; a weekly scheduled run catches breakage from new upstream
   `httpx`/`pydantic` releases. Python 3.13 and 3.14 classifiers added.
+  ([#26](https://github.com/weftmark/ravelpy/pull/26))
 - Tag pushes now fail before publishing if the tag does not match the version in
-  `pyproject.toml` and `docs/conf.py`.
-- Dependabot keeps GitHub Actions up to date.
+  `pyproject.toml` and `docs/conf.py`. ([#26](https://github.com/weftmark/ravelpy/pull/26))
+- Dependabot keeps GitHub Actions up to date. ([#26](https://github.com/weftmark/ravelpy/pull/26))
+
+### Fixed
+
+- Flaky `local_flow` tests that could assert before the callback thread had
+  recorded its response. ([#31](https://github.com/weftmark/ravelpy/pull/31))
 
 ## [0.3.1] - 2026-05-26
 
@@ -158,7 +169,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `OAuthClient` for authorization code exchange and token refresh.
 - Sphinx documentation published to Read the Docs.
 
-[Unreleased]: https://github.com/weftmark/ravelpy/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/weftmark/ravelpy/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/weftmark/ravelpy/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/weftmark/ravelpy/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/weftmark/ravelpy/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/weftmark/ravelpy/compare/v0.2.3...v0.2.4
