@@ -167,7 +167,12 @@ Every method raises `RavelryAPIError` for HTTP error responses and
 `RavelryError`. `RavelryConnectionError` is also an `httpx.TransportError`, so
 existing `except httpx.TransportError` handlers keep working. The default
 timeout is 5 seconds; set `timeout=` on `RavelryClient(...)` or
-`RavelryClient.from_oauth_token(...)` to change it. See
+`RavelryClient.from_oauth_token(...)` to change it.
+
+Set `max_retries=` on either constructor to retry failed `GET` requests
+(connection errors, read timeouts, HTTP 429/502/503/504) with exponential
+backoff that honours `Retry-After`. Retries are off by default, and write
+methods such as `Stash.create()` are never retried. See
 [Quickstart](quickstart.md) for examples.
 
 ---

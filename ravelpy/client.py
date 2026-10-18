@@ -4,6 +4,7 @@ from typing import Union
 
 import httpx
 
+from ._retry import RetryTransport
 from .resources import (
     App,
     BundledItems,
@@ -110,7 +111,14 @@ class RavelryClient:
             parsed, etag, raw = await client.yarns.show(yarn_id=95245, include="colorways")
     """
 
-    def __init__(self, username: str, api_key: str, *, timeout: TimeoutTypes = DEFAULT_TIMEOUT) -> None:
+    def __init__(
+        self,
+        username: str,
+        api_key: str,
+        *,
+        timeout: TimeoutTypes = DEFAULT_TIMEOUT,
+        max_retries: int = 0,
+    ) -> None:
         """Create a client authenticated with Ravelry developer credentials.
 
         Args:
@@ -120,11 +128,25 @@ class RavelryClient:
             timeout:  Per-request timeout in seconds, or an :class:`httpx.Timeout`
                 for separate connect/read/write/pool limits.  ``None`` disables
                 timeouts.  Defaults to :data:`DEFAULT_TIMEOUT` (5 seconds).
+            max_retries: Extra attempts for a failed ``GET`` request (``0``, the
+                default, disables retries).  Retries happen on connection
+                errors, read timeouts and HTTP 429/502/503/504, with exponential
+                backoff that honours ``Retry-After``.  ``POST`` requests are
+                never retried.  ``2`` is a sensible value for most uses.
+
+        Raises:
+            ValueError: If ``max_retries`` is negative.
         """
-        self._setup_resources(self._build_session((username, api_key), timeout))
+        self._setup_resources(self._build_session((username, api_key), timeout, max_retries))
 
     @classmethod
-    def from_oauth_token(cls, access_token: str, *, timeout: TimeoutTypes = DEFAULT_TIMEOUT) -> "RavelryClient":
+    def from_oauth_token(
+        cls,
+        access_token: str,
+        *,
+        timeout: TimeoutTypes = DEFAULT_TIMEOUT,
+        max_retries: int = 0,
+    ) -> "RavelryClient":
         """Create a client that authenticates with a Ravelry OAuth 2.0 access token.
 
         Sends ``Authorization: Bearer <token>`` on every request instead of Basic Auth.
@@ -134,6 +156,7 @@ class RavelryClient:
         Args:
             access_token: A valid Ravelry OAuth 2.0 access token.
             timeout:      Per-request timeout; see :meth:`__init__`.
+            max_retries:  Extra attempts for failed ``GET`` requests; see :meth:`__init__`.
 
         Returns:
             A fully initialised :class:`RavelryClient` using Bearer token auth.
@@ -152,12 +175,24 @@ class RavelryClient:
                 yield request
 
         instance = cls.__new__(cls)
-        instance._setup_resources(cls._build_session(_BearerAuth(), timeout))
+        instance._setup_resources(cls._build_session(_BearerAuth(), timeout, max_retries))
         return instance
 
     @staticmethod
-    def _build_session(auth: Union[tuple[str, str], httpx.Auth], timeout: TimeoutTypes) -> httpx.AsyncClient:
-        return httpx.AsyncClient(auth=auth, headers={"Accept": "application/json"}, timeout=timeout)
+    def _build_session(
+        auth: Union[tuple[str, str], httpx.Auth],
+        timeout: TimeoutTypes,
+        max_retries: int,
+    ) -> httpx.AsyncClient:
+        if max_retries < 0:
+            raise ValueError(f"max_retries must be >= 0, got {max_retries}")
+        transport = RetryTransport(httpx.AsyncHTTPTransport(), max_retries) if max_retries else None
+        return httpx.AsyncClient(
+            auth=auth,
+            headers={"Accept": "application/json"},
+            timeout=timeout,
+            transport=transport,
+        )
 
     async def aclose(self) -> None:
         """Close the underlying :class:`httpx.AsyncClient` session."""

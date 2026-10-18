@@ -41,7 +41,9 @@ def _fake_browser(oauth: OAuthClient, queries, statuses: list):
 
     ``queries`` is a callable taking the expected state and returning a list of
     ``(path, query_dict)`` requests to send in order.  Response status codes are
-    appended to ``statuses``.
+    appended to ``statuses``.  ``local_flow`` can return before the thread has
+    read its last response, so tests must call :func:`_wait` before asserting
+    on ``statuses``.
     """
     base = oauth.redirect_uri.rsplit("/", 1)[0]
 
@@ -56,10 +58,19 @@ def _fake_browser(oauth: OAuthClient, queries, statuses: list):
                 except urllib.error.HTTPError as e:
                     statuses.append(e.code)
 
-        threading.Thread(target=_run, daemon=True).start()
+        thread = threading.Thread(target=_run, daemon=True)
+        _open.threads.append(thread)
+        thread.start()
         return True
 
+    _open.threads = []
     return _open
+
+
+def _wait(browser) -> None:
+    for thread in browser.threads:
+        thread.join(timeout=5)
+        assert not thread.is_alive()
 
 
 def test_success_exchanges_code(oauth):
@@ -71,6 +82,7 @@ def test_success_exchanges_code(oauth):
 
     assert isinstance(result, TokenResponse)
     assert result.access_token == "local_access_token"
+    _wait(browser)
     assert statuses == [200]
     body = dict(urllib.parse.parse_qsl(route.calls.last.request.content.decode()))
     assert body["code"] == "the_code"
@@ -87,6 +99,7 @@ def test_unknown_path_returns_404_and_keeps_waiting(oauth):
         mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
         oauth.local_flow(["offline"])
 
+    _wait(browser)
     assert statuses == [404, 200]
 
 
@@ -98,6 +111,7 @@ def test_authorization_error_raises(oauth):
         with pytest.raises(RuntimeError, match="access_denied"):
             oauth.local_flow(["offline"])
 
+    _wait(browser)
     assert statuses == [400]
     assert not route.called
 
@@ -110,5 +124,6 @@ def test_state_mismatch_raises(oauth):
         with pytest.raises(RuntimeError, match="state_mismatch"):
             oauth.local_flow(["offline"])
 
+    _wait(browser)
     assert statuses == [400]
     assert not route.called

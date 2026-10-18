@@ -149,7 +149,12 @@ if data is None:
 ```python
 from ravelpy import RavelryAPIError, RavelryConnectionError
 
-client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key", timeout=30)  # default 5 s
+client = RavelryClient(
+    username="read-xxxxxxxxxxxx",
+    api_key="your_api_key",
+    timeout=30,      # seconds; default 5
+    max_retries=2,   # retry failed GETs with backoff; default 0 (off), POSTs never retried
+)
 
 try:
     data, etag, raw = await client.patterns.show(pattern_id=0)

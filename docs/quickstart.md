@@ -152,6 +152,21 @@ client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key", tim
 client = RavelryClient.from_oauth_token(access_token, timeout=httpx.Timeout(10, connect=2))
 ```
 
+## Retries
+
+Retries are off by default. Pass `max_retries=` to retry failed `GET` requests
+on connection errors, read timeouts and HTTP 429/502/503/504:
+
+```python
+client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key", max_retries=2)
+```
+
+Delays grow exponentially (about 0.5 s, 1 s, 2 s …, with jitter) and follow a
+`Retry-After` header when Ravelry sends one, capped at 30 seconds. When the
+retries run out you get the same `RavelryAPIError` or `RavelryConnectionError`
+as without retries. `POST` requests such as `stash.create` are **never**
+retried — a write that timed out may already have succeeded.
+
 ## Add a yarn to your stash
 
 `Stash.create()` requires a personal key or OAuth token. Pass a dict of
