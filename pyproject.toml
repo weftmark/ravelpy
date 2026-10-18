@@ -18,6 +18,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
@@ -42,6 +44,7 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=5.0.0",
     "respx>=0.21.0",
+    "ruff>=0.6.0",
     "python-dotenv>=1.0.0",
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.29.0",
@@ -56,6 +59,13 @@ Changelog = "https://github.com/weftmark/ravelpy/blob/main/CHANGELOG.md"
 [tool.hatch.build.targets.wheel]
 packages = ["ravelpy"]
 
+[tool.ruff]
+target-version = "py311"
+extend-exclude = ["scripts", "dev-docs", "bruno"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "strict"
@@ -67,3 +77,4 @@ omit = ["tests/*"]
 
 [tool.coverage.report]
 show_missing = true
+fail_under = 95

@@ -7,6 +7,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- CI now tests Python 3.11–3.14, the declared minimum dependency versions, and
+  the built wheel; a weekly scheduled run catches breakage from new upstream
+  `httpx`/`pydantic` releases. Python 3.13 and 3.14 classifiers added.
+- Tag pushes now fail before publishing if the tag does not match the version in
+  `pyproject.toml` and `docs/conf.py`.
+- Dependabot keeps GitHub Actions up to date.
+
 ## [0.3.1] - 2026-05-26
 
 ### Added

@@ -1,0 +1,17 @@
+# Only GitHub Actions are tracked here. ravelpy is a library whose runtime and
+# dev dependencies are declared as lower bounds (">="), so there are no pins
+# for Dependabot to bump; compatibility with new upstream releases is instead
+# covered by the weekly scheduled CI run, and the floors by the
+# test-minimum-deps job.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci

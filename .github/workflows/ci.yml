@@ -5,22 +5,54 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # Weekly run against the newest httpx/pydantic releases — dependencies are
+    # lower-bound only, so upstream releases can break us without a commit here.
+    - cron: "0 6 * * 1"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Ruff
+        run: ruff check --output-format=github .
+
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # full history for SonarCloud blame data
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
         run: pip install -e ".[dev]"
@@ -28,8 +60,13 @@ jobs:
       - name: Run tests
         run: pytest --cov=ravelpy --cov-report=xml --cov-report=term-missing
 
+      # Secrets are unavailable to Dependabot and fork PRs, so skip uploads there
+      # rather than failing the build.
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.12'
+        if: >-
+          matrix.python-version == '3.12' &&
+          github.actor != 'dependabot[bot]' &&
+          (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -37,8 +74,52 @@ jobs:
           fail_ci_if_error: true
 
       - name: SonarCloud scan
-        if: matrix.python-version == '3.12'
+        if: >-
+          matrix.python-version == '3.12' &&
+          github.actor != 'dependabot[bot]' &&
+          (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  test-minimum-deps:
+    # Verifies the lower bounds declared in pyproject.toml actually work.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install lowest direct dependencies
+        run: |
+          pip install uv
+          uv pip install --system --resolution lowest-direct -e ".[dev]"
+
+      - name: Run tests
+        run: pytest --no-cov
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build distributions
+        run: |
+          pip install build twine
+          python -m build
+          twine check --strict dist/*
+
+      - name: Smoke-test the wheel
+        run: |
+          python -m venv /tmp/wheel-venv
+          /tmp/wheel-venv/bin/pip install dist/*.whl
+          cd /tmp && /tmp/wheel-venv/bin/python -c "import ravelpy; print(ravelpy.__version__); ravelpy.RavelryClient"

@@ -34,7 +34,6 @@ from ravelpy.responses import (
     FiberCategoriesResponse,
     FiberStashResponse,
     ForumPostResponse,
-    ForumPostsResponse,
     ForumSetsResponse,
     FriendActivityResponse,
     FriendsResponse,

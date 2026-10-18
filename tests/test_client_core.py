@@ -1,10 +1,8 @@
 """Tests for :class:`~ravelpy.client.RavelryClient` construction and core ``_get`` behaviour."""
 
 import pytest
-import respx
-import httpx
 
-from ravelpy import RavelryClient, RavelryAPIError
+from ravelpy import RavelryAPIError
 
 BASE = "https://api.ravelry.com"
 

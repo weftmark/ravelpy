@@ -1,9 +1,10 @@
-import pytest
-
 """Tests for smaller resources not covered elsewhere."""
+
 import importlib
 from unittest.mock import patch
 from importlib.metadata import PackageNotFoundError
+
+import pytest
 
 
 # ---------------------------------------------------------------------------
