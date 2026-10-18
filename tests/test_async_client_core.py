@@ -3,7 +3,7 @@
 import pytest
 import respx
 
-from ravelpy import RavelryClient, RavelryAPIError
+from ravelpy import RavelryClient
 
 BASE = "https://api.ravelry.com"
 

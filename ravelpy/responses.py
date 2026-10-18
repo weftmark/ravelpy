@@ -30,7 +30,6 @@ from .models import (
     FiberStash,
     ForumPost,
     ForumSet,
-    Friendship,
     Group,
     Language,
     Message,

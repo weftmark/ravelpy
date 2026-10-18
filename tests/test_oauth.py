@@ -2,7 +2,6 @@
 
 import json
 import urllib.parse
-from pathlib import Path
 
 import pytest
 import respx
@@ -11,7 +10,6 @@ import httpx
 from ravelpy.oauth import (
     AUTH_URL,
     TOKEN_URL,
-    DEFAULT_REDIRECT_URI,
     OAuthClient,
     TokenResponse,
     save_tokens,
