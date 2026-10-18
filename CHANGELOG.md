@@ -7,8 +7,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- `timeout=` keyword argument on `RavelryClient(...)` and
+  `RavelryClient.from_oauth_token(...)` — seconds, an `httpx.Timeout`, or `None`.
+  Defaults to 5 seconds (unchanged). ([#27](https://github.com/weftmark/ravelpy/issues/27))
+- `RavelryConnectionError`, raised for timeouts and other network failures, with
+  an `is_timeout` property. It also subclasses `httpx.TransportError`.
+  ([#27](https://github.com/weftmark/ravelpy/issues/27))
+- `RavelryError` base class for `RavelryAPIError` and `RavelryConnectionError`.
+
 ### Changed
 
+- **Behaviour change:** network failures now raise `RavelryConnectionError`
+  instead of the raw httpx exception. Code catching `httpx.TransportError` or
+  `httpx.HTTPError` is unaffected; code catching a specific subclass such as
+  `httpx.ReadTimeout` should switch to `RavelryConnectionError` and check
+  `is_timeout`. ([#27](https://github.com/weftmark/ravelpy/issues/27))
+- **Behaviour change:** a 2xx response whose body is not valid JSON now raises
+  `RavelryAPIError` instead of `json.JSONDecodeError`.
+  ([#27](https://github.com/weftmark/ravelpy/issues/27))
 - CI now tests Python 3.11–3.14, the declared minimum dependency versions, and
   the built wheel; a weekly scheduled run catches breakage from new upstream
   `httpx`/`pydantic` releases. Python 3.13 and 3.14 classifiers added.

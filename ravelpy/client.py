@@ -1,5 +1,7 @@
 """Top-level async client that wires a shared httpx.AsyncClient to every resource sub-client."""
 
+from typing import Union
+
 import httpx
 
 from .resources import (
@@ -44,6 +46,11 @@ from .resources import (
     YarnCompanies,
     Yarns,
 )
+
+DEFAULT_TIMEOUT = 5.0
+"""Default per-request timeout in seconds (connect, read, write and pool)."""
+
+TimeoutTypes = Union[float, httpx.Timeout, None]
 
 
 class RavelryClient:
@@ -90,25 +97,34 @@ class RavelryClient:
     Individual resource sub-client docstrings note which tier each endpoint
     requires.
 
+    **Errors**
+
+    Resource methods raise :class:`~ravelpy.exceptions.RavelryAPIError` for
+    HTTP error responses and :class:`~ravelpy.exceptions.RavelryConnectionError`
+    for timeouts and other network failures.  Both derive from
+    :class:`~ravelpy.exceptions.RavelryError`.
+
     Example::
 
         async with RavelryClient(username="read-xxxx", api_key="your-key") as client:
             parsed, etag, raw = await client.yarns.show(yarn_id=95245, include="colorways")
     """
 
-    def __init__(self, username: str, api_key: str) -> None:
+    def __init__(self, username: str, api_key: str, *, timeout: TimeoutTypes = DEFAULT_TIMEOUT) -> None:
         """Create a client authenticated with Ravelry developer credentials.
 
         Args:
             username: Ravelry username for HTTP Basic Auth.  For a read-only
                 key this is the ``read-xxxx`` string from the developer portal.
             api_key:  Corresponding API key used as the Basic Auth password.
+            timeout:  Per-request timeout in seconds, or an :class:`httpx.Timeout`
+                for separate connect/read/write/pool limits.  ``None`` disables
+                timeouts.  Defaults to :data:`DEFAULT_TIMEOUT` (5 seconds).
         """
-        session = httpx.AsyncClient(auth=(username, api_key), headers={"Accept": "application/json"})
-        self._setup_resources(session)
+        self._setup_resources(self._build_session((username, api_key), timeout))
 
     @classmethod
-    def from_oauth_token(cls, access_token: str) -> "RavelryClient":
+    def from_oauth_token(cls, access_token: str, *, timeout: TimeoutTypes = DEFAULT_TIMEOUT) -> "RavelryClient":
         """Create a client that authenticates with a Ravelry OAuth 2.0 access token.
 
         Sends ``Authorization: Bearer <token>`` on every request instead of Basic Auth.
@@ -117,6 +133,7 @@ class RavelryClient:
 
         Args:
             access_token: A valid Ravelry OAuth 2.0 access token.
+            timeout:      Per-request timeout; see :meth:`__init__`.
 
         Returns:
             A fully initialised :class:`RavelryClient` using Bearer token auth.
@@ -135,9 +152,12 @@ class RavelryClient:
                 yield request
 
         instance = cls.__new__(cls)
-        session = httpx.AsyncClient(auth=_BearerAuth(), headers={"Accept": "application/json"})
-        instance._setup_resources(session)
+        instance._setup_resources(cls._build_session(_BearerAuth(), timeout))
         return instance
+
+    @staticmethod
+    def _build_session(auth: Union[tuple[str, str], httpx.Auth], timeout: TimeoutTypes) -> httpx.AsyncClient:
+        return httpx.AsyncClient(auth=auth, headers={"Accept": "application/json"}, timeout=timeout)
 
     async def aclose(self) -> None:
         """Close the underlying :class:`httpx.AsyncClient` session."""

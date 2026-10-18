@@ -119,14 +119,37 @@ while True:
 
 ## Error handling
 
+Resource methods raise two kinds of error, both subclasses of `RavelryError`:
+
+- `RavelryAPIError` — Ravelry responded with a non-2xx status (or a body that
+  isn't JSON). Has `status_code` and `message`.
+- `RavelryConnectionError` — no response arrived: timeout, DNS failure,
+  refused or reset connection. `is_timeout` tells timeouts apart; the original
+  httpx exception is available as `__cause__`.
+
 ```python
-from ravelpy import RavelryClient, RavelryAPIError
+from ravelpy import RavelryClient, RavelryAPIError, RavelryConnectionError
 
 async with RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") as client:
     try:
         data, etag, raw = await client.patterns.show(pattern_id=0)
     except RavelryAPIError as e:
         print(e.status_code, e.message)
+    except RavelryConnectionError as e:
+        print("timed out" if e.is_timeout else f"network error: {e}")
+```
+
+## Timeouts
+
+Requests time out after 5 seconds by default. Pass `timeout=` to either
+constructor — a number of seconds, an `httpx.Timeout` for separate limits, or
+`None` to disable timeouts:
+
+```python
+import httpx
+
+client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key", timeout=30)
+client = RavelryClient.from_oauth_token(access_token, timeout=httpx.Timeout(10, connect=2))
 ```
 
 ## Add a yarn to your stash
