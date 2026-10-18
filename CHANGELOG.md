@@ -16,6 +16,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   an `is_timeout` property. It also subclasses `httpx.TransportError`.
   ([#27](https://github.com/weftmark/ravelpy/issues/27))
 - `RavelryError` base class for `RavelryAPIError` and `RavelryConnectionError`.
+- `max_retries=` keyword argument on `RavelryClient(...)` and
+  `RavelryClient.from_oauth_token(...)`. Retries failed `GET` requests on
+  connection errors, read timeouts and HTTP 429/502/503/504, with exponential
+  backoff that honours `Retry-After` (capped at 30 s). Off by default; `POST`
+  requests are never retried. ([#28](https://github.com/weftmark/ravelpy/issues/28))
 
 ### Changed
 
