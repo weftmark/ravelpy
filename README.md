@@ -144,6 +144,25 @@ if data is None:
 
 ---
 
+## Errors and timeouts
+
+```python
+from ravelpy import RavelryAPIError, RavelryConnectionError
+
+client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key", timeout=30)  # default 5 s
+
+try:
+    data, etag, raw = await client.patterns.show(pattern_id=0)
+except RavelryAPIError as e:          # non-2xx response
+    print(e.status_code, e.message)
+except RavelryConnectionError as e:   # timeout / network failure
+    print("timed out" if e.is_timeout else e)
+```
+
+Both exceptions derive from `RavelryError`.
+
+---
+
 ## API coverage
 
 | Sub-client | Methods |

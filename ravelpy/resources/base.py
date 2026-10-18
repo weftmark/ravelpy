@@ -1,10 +1,12 @@
 """Base resource class and shared return-type alias used by all resource sub-clients."""
 
+import json
+
 import httpx
 from typing import Any, Optional, Type
 from pydantic import BaseModel
 
-from ..exceptions import RavelryAPIError
+from ..exceptions import RavelryAPIError, RavelryConnectionError
 
 ApiResult = tuple[Any, Optional[str], Optional[dict]]
 """3-tuple returned by every resource method: ``(parsed, etag, raw)``.
@@ -21,6 +23,18 @@ ApiResult = tuple[Any, Optional[str], Optional[dict]]
 BASE_URL = "https://api.ravelry.com"
 
 
+async def _send(coro: Any) -> httpx.Response:
+    """Await an httpx request, re-raising transport failures as :class:`RavelryConnectionError`."""
+    try:
+        return await coro
+    except httpx.TransportError as exc:
+        try:
+            request = exc.request
+        except RuntimeError:  # raised by httpx when no request is attached
+            request = None
+        raise RavelryConnectionError(str(exc) or type(exc).__name__, request=request) from exc
+
+
 def _process_response(
     response: httpx.Response,
     etag: Optional[str],
@@ -31,7 +45,10 @@ def _process_response(
         return None, etag, None
     if not response.is_success:
         raise RavelryAPIError(response.status_code, response.text)
-    raw = response.json()
+    try:
+        raw = response.json()
+    except json.JSONDecodeError:
+        raise RavelryAPIError(response.status_code, f"Response body is not valid JSON: {response.text}") from None
     if model is not None:
         try:
             parsed = model.model_validate(raw)
@@ -73,12 +90,15 @@ class Resource:
             :data:`ApiResult` 3-tuple ``(parsed, etag, raw)``.
 
         Raises:
-            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx, non-304 response.
+            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx, non-304
+                response, or a 2xx response whose body is not valid JSON.
+            :class:`~ravelpy.exceptions.RavelryConnectionError`: On a timeout or
+                other network failure before a response is received.
         """
         url = f"{self.BASE_URL}{path}"
         clean_params = {k: v for k, v in (params or {}).items() if v is not None}
         headers = {"If-None-Match": etag} if etag else {}
-        response = await self._session.get(url, params=clean_params, headers=headers)
+        response = await _send(self._session.get(url, params=clean_params, headers=headers))
         return _process_response(response, etag, model)
 
     async def _post(
@@ -99,8 +119,11 @@ class Resource:
             ``None`` — Ravelry does not send ETags on write responses.
 
         Raises:
-            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx response.
+            :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx response,
+                or a 2xx response whose body is not valid JSON.
+            :class:`~ravelpy.exceptions.RavelryConnectionError`: On a timeout or
+                other network failure before a response is received.
         """
         url = f"{self.BASE_URL}{path}"
-        response = await self._session.post(url, json=payload or {})
+        response = await _send(self._session.post(url, json=payload or {}))
         return _process_response(response, None, model)

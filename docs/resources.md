@@ -160,6 +160,16 @@ print(f"Page {paginator['page']} of {paginator['last_page']}")
 Every method accepts an optional `etag` keyword argument. See
 [Quickstart](quickstart.md) for a full example.
 
+## Errors and timeouts
+
+Every method raises `RavelryAPIError` for HTTP error responses and
+`RavelryConnectionError` for timeouts and network failures; both derive from
+`RavelryError`. `RavelryConnectionError` is also an `httpx.TransportError`, so
+existing `except httpx.TransportError` handlers keep working. The default
+timeout is 5 seconds; set `timeout=` on `RavelryClient(...)` or
+`RavelryClient.from_oauth_token(...)` to change it. See
+[Quickstart](quickstart.md) for examples.
+
 ---
 
 ## Writing stash entries
