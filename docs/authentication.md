@@ -19,12 +19,15 @@ Use the `basic_auth_username` (starts with `read-`) and `basic_auth_password`
 from your developer portal. Grants access to public catalog endpoints only.
 
 ```python
+import asyncio
 from ravelpy import RavelryClient
 
-client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key")
+async def main():
+    async with RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") as client:
+        data, etag, raw = await client.patterns.search(query="socks")
+        data, etag, raw = await client.yarns.show(yarn_id=90897)
 
-data, etag, raw = client.patterns.search(query="socks")
-data, etag, raw = client.yarns.show(yarn_id=90897)
+asyncio.run(main())
 ```
 
 ---
@@ -37,11 +40,10 @@ endpoints without configuring OAuth scopes.
 ```python
 from ravelpy import RavelryClient
 
-client = RavelryClient(username="your_username", api_key="your_personal_key")
-
-data, etag, raw = client.people.me()
-data, etag, raw = client.messages.list()
-data, etag, raw = client.stash.list(username="your_username")
+async with RavelryClient(username="your_username", api_key="your_personal_key") as client:
+    data, etag, raw = await client.people.me()
+    data, etag, raw = await client.messages.list()
+    data, etag, raw = await client.stash.list(username="your_username")
 ```
 
 ---
@@ -63,6 +65,10 @@ Use OAuth 2.0 when your application acts on behalf of other Ravelry users.
 
 ### Authorization flow
 
+`auth_url()` and `local_flow()` are synchronous. `exchange_code()` and
+`refresh()` are coroutines and must be awaited. `local_flow()` runs its own
+event loop, so call it outside `asyncio.run(...)`, not from inside a coroutine.
+
 ```python
 from ravelpy import RavelryClient
 from ravelpy.oauth import OAuthClient, OAuthScope
@@ -72,16 +78,28 @@ oauth = OAuthClient(
     client_secret="your_client_secret",
 )
 
-# Step 1 — send the user to Ravelry
+# Step 1 — send the user to Ravelry; keep `state` to check in the callback
 url, state = oauth.auth_url(scopes=[OAuthScope.OFFLINE])
 print(f"Visit: {url}")
 
-# Step 2 — exchange the authorization code for a token
-token = oauth.exchange_code(code="code_from_callback")
+async def finish(code: str, returned_state: str):
+    # Step 2 — reject callbacks whose state doesn't match (CSRF guard),
+    # then exchange the authorization code for a token
+    if returned_state != state:
+        raise RuntimeError("OAuth state mismatch")
+    token = await oauth.exchange_code(code=code)
 
-# Step 3 — build a client
-client = RavelryClient.from_oauth_token(token.access_token)
-data, etag, raw = client.people.me()
+    # Step 3 — build a client
+    async with RavelryClient.from_oauth_token(token.access_token) as client:
+        data, etag, raw = await client.people.me()
+    return token
+```
+
+For local scripts, `local_flow()` does all of this (browser, callback server,
+state check, code exchange) in one synchronous call:
+
+```python
+token = oauth.local_flow([OAuthScope.OFFLINE])
 ```
 
 ### Local browser flow
@@ -105,13 +123,16 @@ valid callback within `timeout` seconds raises `TimeoutError`.
 ### Persisting tokens
 
 ```python
+from pathlib import Path
 from ravelpy.oauth import save_tokens, load_tokens
 
+TOKEN_PATH = Path(".oauth_tokens.json")
+
 # Save after exchanging or refreshing
-save_tokens(token)
+save_tokens(token, TOKEN_PATH)
 
 # Load on next run
-token = load_tokens()
+token = load_tokens(TOKEN_PATH)
 client = RavelryClient.from_oauth_token(token.access_token)
 ```
 
@@ -124,9 +145,11 @@ you can read.
 ### Refreshing tokens
 
 ```python
-refreshed = oauth.refresh(token.refresh_token)
-save_tokens(refreshed)
-client = RavelryClient.from_oauth_token(refreshed.access_token)
+async def refresh_and_connect():
+    refreshed = await oauth.refresh(token.refresh_token)
+    save_tokens(refreshed, TOKEN_PATH)
+    async with RavelryClient.from_oauth_token(refreshed.access_token) as client:
+        data, etag, raw = await client.people.me()
 ```
 
 ---

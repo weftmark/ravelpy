@@ -21,6 +21,7 @@ Usage:
 """
 
 import argparse
+import asyncio
 import json
 import os
 import sys
@@ -108,9 +109,9 @@ from ravelpy.oauth import OAuthClient  # noqa: E402
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-def _authorize(client: OAuthClient, scopes: list[str], scope_name: str) -> str:
+async def _authorize(client: OAuthClient, scopes: list[str], scope_name: str) -> str:
     """Run the manual browser flow and return an access token."""
-    url, _ = client.auth_url(scopes)
+    url, expected_state = client.auth_url(scopes)
     print(f"\n{'=' * 70}")
     print(f"  Authorizing scope set: {scope_name!r}  ({' '.join(scopes)})")
     print(f"{'=' * 70}")
@@ -124,13 +125,17 @@ def _authorize(client: OAuthClient, scopes: list[str], scope_name: str) -> str:
         params = urllib.parse.parse_qs(urllib.parse.urlparse(pasted).query)
         if "error" in params:
             sys.exit(f"Authorization error: {params['error'][0]}")
+        if params.get("state", [None])[0] != expected_state:
+            sys.exit("State mismatch in the pasted URL (possible CSRF). Start again.")
         code = params.get("code", [None])[0]
         if not code:
             sys.exit("No 'code' parameter found in the pasted URL.")
     else:
+        print("WARNING: only a code was pasted, so the OAuth state could not be checked.",
+              file=sys.stderr)
         code = pasted
 
-    tokens = client.exchange_code(code)
+    tokens = await client.exchange_code(code)
     return tokens.access_token
 
 
@@ -148,6 +153,19 @@ def _run_cases(token: str, cases: list[Case]) -> dict[str, int]:
         print(f"  {case.label:<40} {r.status_code}")
     session.close()
     return results
+
+
+async def _authorize_pending(pending: list[tuple[str, list[str]]]) -> None:
+    """Authorize each pending scope set, run the cases and save results as we go."""
+    oauth = OAuthClient(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+    total = len(pending)
+    for i, (scope_name, scopes) in enumerate(pending, 1):
+        print(f"\n[{i}/{total}] Scope: {scope_name}")
+        token = await _authorize(oauth, scopes, scope_name)
+        print(f"\nRunning {len(AUTH_CASES)} endpoint tests...")
+        all_results[scope_name] = _run_cases(token, AUTH_CASES)
+        results_path.write_text(json.dumps(all_results, indent=2))
+        print(f"Saved to {results_path}")
 
 
 # ── Load existing results ─────────────────────────────────────────────────────
@@ -170,15 +188,7 @@ if not args.report_only:
     if not pending:
         print("All requested scopes already have results. Use --report-only to print.")
     else:
-        oauth = OAuthClient(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
-        total = len(pending)
-        for i, (scope_name, scopes) in enumerate(pending, 1):
-            print(f"\n[{i}/{total}] Scope: {scope_name}")
-            token = _authorize(oauth, scopes, scope_name)
-            print(f"\nRunning {len(AUTH_CASES)} endpoint tests...")
-            all_results[scope_name] = _run_cases(token, AUTH_CASES)
-            results_path.write_text(json.dumps(all_results, indent=2))
-            print(f"Saved to {results_path}")
+        asyncio.run(_authorize_pending(pending))
 
     if not all_results:
         sys.exit("No results to report.")

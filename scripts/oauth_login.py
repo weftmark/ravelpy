@@ -10,6 +10,7 @@ Two modes:
     Requires the redirect URI to use http:// — HTTPS will not work with a local server.
   Manual (--manual): prints the auth URL, you authorize in the browser, then paste
     the full redirect URL (or just the code=... value) back into the terminal.
+    The state in a pasted URL is checked; pasting only the code skips that check.
     Use this when the Ravelry portal requires https:// redirect URIs.
 
 Usage:
@@ -25,8 +26,11 @@ Usage:
 """
 
 import argparse
+import asyncio
 import os
 import sys
+import urllib.parse
+import webbrowser
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -70,18 +74,11 @@ if not CLIENT_ID or not CLIENT_SECRET:
         "or pass --oauth-clientid/--oauth-secret. See .env.example for the full format."
     )
 
-from ravelpy.oauth import OAuthClient, save_tokens
+from ravelpy.oauth import OAuthClient, TokenResponse, save_tokens
 
-oauth = OAuthClient(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 
-print(f"Requesting scopes: {' '.join(SCOPES)}")
-print(f"Redirect URI: {REDIRECT_URI}")
-print()
-
-if args.manual:
-    import urllib.parse
-    import webbrowser
-
+def _manual_code(oauth: OAuthClient) -> str:
+    """Print the auth URL, read the pasted redirect, verify its state and return the code."""
     url, expected_state = oauth.auth_url(SCOPES)
     print("Open this URL in your browser to authorize:")
     print(f"\n  {url}\n")
@@ -91,31 +88,57 @@ if args.manual:
     pasted = input("> ").strip()
 
     # Accept either the full URL or just the raw code value
-    if pasted.startswith("http"):
-        params = urllib.parse.parse_qs(urllib.parse.urlparse(pasted).query)
-        if "error" in params:
-            sys.exit(f"Authorization error: {params['error'][0]}")
-        code = params.get("code", [None])[0]
-        if not code:
-            sys.exit("No 'code' parameter found in the pasted URL.")
+    if not pasted.startswith("http"):
+        print(
+            "WARNING: only a code was pasted, so the OAuth state could not be checked.\n"
+            "Paste the full redirect URL to guard against CSRF.",
+            file=sys.stderr,
+        )
+        return pasted
+
+    params = urllib.parse.parse_qs(urllib.parse.urlparse(pasted).query)
+    if "error" in params:
+        sys.exit(f"Authorization error: {params['error'][0]}")
+    if params.get("state", [None])[0] != expected_state:
+        sys.exit("State mismatch in the pasted URL (possible CSRF). Start the login again.")
+    code = params.get("code", [None])[0]
+    if not code:
+        sys.exit("No 'code' parameter found in the pasted URL.")
+    return code
+
+
+async def _exchange(oauth: OAuthClient, code: str) -> TokenResponse:
+    return await oauth.exchange_code(code)
+
+
+def main() -> None:
+    oauth = OAuthClient(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+
+    print(f"Requesting scopes: {' '.join(SCOPES)}")
+    print(f"Redirect URI: {REDIRECT_URI}")
+    print()
+
+    if args.manual:
+        tokens = asyncio.run(_exchange(oauth, _manual_code(oauth)))
     else:
-        code = pasted  # user pasted just the code value
+        # local_flow is synchronous and runs its own event loop (asyncio.run),
+        # so it must be called outside any running loop.
+        tokens = oauth.local_flow(SCOPES)
 
-    tokens = oauth.exchange_code(code)
-else:
-    tokens = oauth.local_flow(SCOPES)
+    token_path = ROOT / ".oauth_tokens.json"
+    save_tokens(tokens, token_path)
 
-token_path = ROOT / ".oauth_tokens.json"
-save_tokens(tokens, token_path)
+    hours = tokens.expires_in // 3600
+    minutes = (tokens.expires_in % 3600) // 60
 
-hours = tokens.expires_in // 3600
-minutes = (tokens.expires_in % 3600) // 60
+    print()
+    print(f"Tokens saved to {token_path}")
+    print(f"Access token expires in: {hours}h {minutes}m")
+    if tokens.refresh_token:
+        print("Refresh token received — run this script again when the token expires,")
+        print("or use scripts/oauth_refresh.py to refresh without re-authorizing.")
+    else:
+        print("No refresh token (request the 'offline' scope to get one).")
 
-print()
-print(f"Tokens saved to {token_path}")
-print(f"Access token expires in: {hours}h {minutes}m")
-if tokens.refresh_token:
-    print("Refresh token received — run this script again when the token expires,")
-    print("or use scripts/oauth_refresh.py to refresh without re-authorizing.")
-else:
-    print("No refresh token (request the 'offline' scope to get one).")
+
+main()
