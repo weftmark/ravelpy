@@ -123,3 +123,19 @@ jobs:
           python -m venv /tmp/wheel-venv
           /tmp/wheel-venv/bin/pip install dist/*.whl
           cd /tmp && /tmp/wheel-venv/bin/python -c "import ravelpy; print(ravelpy.__version__); ravelpy.RavelryClient"
+
+  # Single required check for the main-protect ruleset, so adding or renaming a
+  # matrix entry doesn't need a ruleset change. Dependabot auto-merge waits on it.
+  ci-ok:
+    if: always()
+    needs: [lint, test, test-minimum-deps, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All CI jobs passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for r in $RESULTS; do
+            [ "$r" = "success" ] || { echo "::error::a required CI job did not succeed ($r)"; exit 1; }
+          done
