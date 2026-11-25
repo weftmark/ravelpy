@@ -22,8 +22,8 @@ class Queue(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return a user's queue (``GET /people/{username}/queue/list.json``)."""
-        return await self._get(f"/people/{username}/queue/list.json", {"page": page, "page_size": page_size}, etag=etag, model=QueueResponse)
+        return await self._get(self._path("/people/{}/queue/list.json", username), {"page": page, "page_size": page_size}, etag=etag, model=QueueResponse)
 
     async def show(self, username: str, queue_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single queued project (``GET /people/{username}/queue/{id}.json``)."""
-        return await self._get(f"/people/{username}/queue/{queue_id}.json", etag=etag, model=QueuedProjectResponse)
+        return await self._get(self._path("/people/{}/queue/{}.json", username, queue_id), etag=etag, model=QueuedProjectResponse)

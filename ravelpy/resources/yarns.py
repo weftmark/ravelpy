@@ -25,7 +25,7 @@ class Yarns(Resource):
                 Both can be combined: ``"colorways availability"``.
             etag:    If provided, sent as ``If-None-Match`` for conditional caching.
         """
-        return await self._get(f"/yarns/{yarn_id}.json", {"include": include}, etag=etag, model=YarnResponse)
+        return await self._get(self._path("/yarns/{}.json", yarn_id), {"include": include}, etag=etag, model=YarnResponse)
 
     async def list(self, ids: str, etag: Optional[str] = None) -> ApiResult:
         """Return multiple yarns by comma-separated IDs (``GET /yarns.json``)."""
@@ -65,4 +65,4 @@ class Yarns(Resource):
 
         Authenticated — requires a personal key or OAuth 2.0.
         """
-        return await self._get(f"/yarns/{yarn_id}/comments.json", {"page": page, "page_size": page_size, "sort": sort}, etag=etag, model=CommentsResponse)
+        return await self._get(self._path("/yarns/{}/comments.json", yarn_id), {"page": page, "page_size": page_size, "sort": sort}, etag=etag, model=CommentsResponse)

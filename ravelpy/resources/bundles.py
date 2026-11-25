@@ -24,11 +24,11 @@ class Bundles(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return a user's bundles (``GET /people/{username}/bundles/list.json``)."""
-        return await self._get(f"/people/{username}/bundles/list.json", {
+        return await self._get(self._path("/people/{}/bundles/list.json", username), {
             "owner_types": owner_types, "query": query,
             "page": page, "page_size": page_size,
         }, etag=etag, model=BundlesResponse)
 
     async def show(self, username: str, bundle_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single bundle (``GET /people/{username}/bundles/{id}.json``)."""
-        return await self._get(f"/people/{username}/bundles/{bundle_id}.json", etag=etag, model=BundleResponse)
+        return await self._get(self._path("/people/{}/bundles/{}.json", username, bundle_id), etag=etag, model=BundleResponse)

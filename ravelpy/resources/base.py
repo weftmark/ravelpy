@@ -1,6 +1,7 @@
 """Base resource class and shared return-type alias used by all resource sub-clients."""
 
 import json
+from urllib.parse import quote
 
 import httpx
 from typing import Any, Optional, Type
@@ -71,6 +72,33 @@ class Resource:
         """
         self._session = session
 
+    @staticmethod
+    def _path(template: str, *segments: Any) -> str:
+        """Build an API path, percent-encoding each caller-supplied segment.
+
+        Each value in *segments* is converted with ``str()`` and encoded with
+        ``urllib.parse.quote(..., safe="")``, so ``/``, ``?``, ``#`` and similar
+        characters cannot escape the path segment it is placed in.  A segment
+        that is exactly ``.`` or ``..`` has its dots encoded as ``%2E`` so it is
+        not treated as a dot segment.  Usernames made of letters, digits, ``-``,
+        ``_`` and ``.``, and integer IDs, are unchanged.
+
+        Args:
+            template: Path with one ``{}`` placeholder per segment
+                      (e.g. ``"/people/{}/stash/{}.json"``).
+            segments: Values substituted into the placeholders, in order.
+
+        Returns:
+            The path with every segment percent-encoded.
+        """
+        encoded = []
+        for segment in segments:
+            value = quote(str(segment), safe="")
+            if value in (".", ".."):
+                value = value.replace(".", "%2E")
+            encoded.append(value)
+        return template.format(*encoded)
+
     async def _get(
         self,
         path: str,
@@ -82,6 +110,7 @@ class Resource:
 
         Args:
             path:   API path relative to ``BASE_URL`` (e.g. ``/yarns/1.json``).
+                    Build it with :meth:`_path` when it contains caller values.
             params: Query parameters; ``None`` values are stripped before sending.
             etag:   If provided, sent as ``If-None-Match`` for conditional caching.
             model:  Pydantic model class to validate the response body against.
@@ -111,6 +140,7 @@ class Resource:
 
         Args:
             path:    API path relative to ``BASE_URL`` (e.g. ``/people/you/stash/create.json``).
+                     Build it with :meth:`_path` when it contains caller values.
             payload: JSON-serialisable dict sent as the request body.  Defaults to ``{}``.
             model:   Pydantic model class to validate the response body against.
 

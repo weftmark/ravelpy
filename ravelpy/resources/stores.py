@@ -48,7 +48,7 @@ class Stores(Resource):
         ``patternstore-read``; may require a valid store ID owned by the user, or
         additional parameters.  See GitHub issue #2.
         """
-        return await self._get(f"/stores/{store_id}/products.json", {"page": page, "page_size": page_size}, etag=etag, model=StoreProductsResponse)
+        return await self._get(self._path("/stores/{}/products.json", store_id), {"page": page, "page_size": page_size}, etag=etag, model=StoreProductsResponse)
 
     async def purchases(
         self,
@@ -65,4 +65,4 @@ class Stores(Resource):
         TODO: obtain a ``patternstore-purchases`` token and validate; currently returns
         403 under all tested scopes.  See GitHub issue #2.
         """
-        return await self._get(f"/stores/{store_id}/purchases.json", {"page": page, "page_size": page_size}, etag=etag)
+        return await self._get(self._path("/stores/{}/purchases.json", store_id), {"page": page, "page_size": page_size}, etag=etag)

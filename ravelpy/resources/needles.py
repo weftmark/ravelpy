@@ -16,7 +16,7 @@ class Needles(Resource):
 
     async def list(self, username: str, etag: Optional[str] = None) -> ApiResult:
         """Return a user's needle records (``GET /people/{username}/needles/list.json``)."""
-        return await self._get(f"/people/{username}/needles/list.json", etag=etag, model=NeedlesResponse)
+        return await self._get(self._path("/people/{}/needles/list.json", username), etag=etag, model=NeedlesResponse)
 
     async def sizes(self, etag: Optional[str] = None) -> ApiResult:
         """Return all needle sizes (``GET /needles/sizes.json``)."""

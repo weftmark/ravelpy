@@ -29,7 +29,7 @@ class Forums(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return topics in a forum (``GET /forums/{forum_id}/topics.json``)."""
-        return await self._get(f"/forums/{forum_id}/topics.json", {"page": page, "page_size": page_size}, etag=etag, model=TopicsResponse)
+        return await self._get(self._path("/forums/{}/topics.json", forum_id), {"page": page, "page_size": page_size}, etag=etag, model=TopicsResponse)
 
     async def filtered_topics(
         self,
@@ -42,7 +42,7 @@ class Forums(Resource):
 
     async def post(self, post_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single forum post (``GET /forum_posts/{id}.json``)."""
-        return await self._get(f"/forum_posts/{post_id}.json", etag=etag, model=ForumPostResponse)
+        return await self._get(self._path("/forum_posts/{}.json", post_id), etag=etag, model=ForumPostResponse)
 
     async def unread_posts(self, etag: Optional[str] = None) -> ApiResult:
         """Return the authenticated user's unread forum posts (``GET /forum_posts/unread.json``)."""

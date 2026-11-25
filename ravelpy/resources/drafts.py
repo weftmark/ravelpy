@@ -41,4 +41,4 @@ class Drafts(Resource):
         TODO: validate with a real draft ID; no user with active drafts has been tested
         yet (live testing with this account returned empty list).  See GitHub issue #1.
         """
-        return await self._get(f"/drafts/patterns/{pattern_id}.json", etag=etag, model=DraftPatternResponse)
+        return await self._get(self._path("/drafts/patterns/{}.json", pattern_id), etag=etag, model=DraftPatternResponse)

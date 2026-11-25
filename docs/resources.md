@@ -143,6 +143,26 @@ print(stash.total_skeins)
 
 ---
 
+## Path arguments are percent-encoded
+
+Usernames and IDs you pass to a method (for example `username` in
+`client.stash.list(username=...)` or `pattern_id` in `client.patterns.show(...)`)
+are percent-encoded before they go into the URL path. Each value is passed
+through `urllib.parse.quote(str(value), safe="")`, so `/`, `?`, `#` and similar
+characters stay inside that one path segment. A value of exactly `.` or `..` is
+sent as `%2E` / `%2E%2E`. A value therefore cannot send the request to a
+different Ravelry endpoint. Normal usernames (letters, digits, `-`, `_`, `.`)
+and integer IDs produce the same URLs as before.
+
+```python
+await client.people.show(username="../x?y#z")
+# GET https://api.ravelry.com/people/..%2Fx%3Fy%23z.json  (not /x?y#z)
+```
+
+Encoding is not validation: you should still validate untrusted input before
+passing it to the client. An invalid username just gets an error response from
+Ravelry.
+
 ## Pagination
 
 Methods that return lists accept `page` and `page_size` parameters. The raw

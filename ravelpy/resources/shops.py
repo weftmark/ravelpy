@@ -23,4 +23,4 @@ class Shops(Resource):
 
     async def show(self, shop_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single shop (``GET /shops/{id}.json``)."""
-        return await self._get(f"/shops/{shop_id}.json", etag=etag, model=ShopResponse)
+        return await self._get(self._path("/shops/{}.json", shop_id), etag=etag, model=ShopResponse)

@@ -15,4 +15,4 @@ class BundledItems(Resource):
 
     async def show(self, bundled_item_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single bundled item (``GET /bundled_items/{id}.json``)."""
-        return await self._get(f"/bundled_items/{bundled_item_id}.json", etag=etag, model=BundledItemResponse)
+        return await self._get(self._path("/bundled_items/{}.json", bundled_item_id), etag=etag, model=BundledItemResponse)

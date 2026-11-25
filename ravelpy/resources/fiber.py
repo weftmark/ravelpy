@@ -15,7 +15,7 @@ class Fiber(Resource):
 
     async def show(self, username: str, fiber_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single fiber stash entry (``GET /people/{username}/fiber/{id}.json``)."""
-        return await self._get(f"/people/{username}/fiber/{fiber_id}.json", etag=etag, model=FiberStashResponse)
+        return await self._get(self._path("/people/{}/fiber/{}.json", username, fiber_id), etag=etag, model=FiberStashResponse)
 
     async def comments(
         self,
@@ -28,7 +28,7 @@ class Fiber(Resource):
     ) -> ApiResult:
         """Return comments on a fiber entry (``GET /people/{username}/fiber/{id}/comments.json``)."""
         return await self._get(
-            f"/people/{username}/fiber/{fiber_id}/comments.json",
+            self._path("/people/{}/fiber/{}/comments.json", username, fiber_id),
             {"page": page, "page_size": page_size, "sort": sort},
             etag=etag,
             model=CommentsResponse,

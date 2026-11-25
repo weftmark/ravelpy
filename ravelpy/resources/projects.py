@@ -22,11 +22,11 @@ class Projects(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return a user's projects (``GET /projects/{username}/list.json``)."""
-        return await self._get(f"/projects/{username}/list.json", {"page": page, "page_size": page_size}, etag=etag, model=ProjectsResponse)
+        return await self._get(self._path("/projects/{}/list.json", username), {"page": page, "page_size": page_size}, etag=etag, model=ProjectsResponse)
 
     async def show(self, username: str, project_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single project (``GET /projects/{username}/{id}.json``)."""
-        return await self._get(f"/projects/{username}/{project_id}.json", etag=etag, model=ProjectResponse)
+        return await self._get(self._path("/projects/{}/{}.json", username, project_id), etag=etag, model=ProjectResponse)
 
     async def search(
         self,
@@ -55,7 +55,7 @@ class Projects(Resource):
 
         Authenticated — requires a personal key or OAuth 2.0.
         """
-        return await self._get(f"/projects/{username}/{project_id}/comments.json", {"page": page, "page_size": page_size}, etag=etag, model=CommentsResponse)
+        return await self._get(self._path("/projects/{}/{}/comments.json", username, project_id), {"page": page, "page_size": page_size}, etag=etag, model=CommentsResponse)
 
     async def crafts(self, etag: Optional[str] = None) -> ApiResult:
         """Return the list of craft types (``GET /projects/crafts.json``)."""

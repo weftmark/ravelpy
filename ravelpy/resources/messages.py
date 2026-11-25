@@ -36,4 +36,4 @@ class Messages(Resource):
         TODO: returns 403 for all tested credentials including personal key; may
         require a valid message ID the user owns.  See GitHub issue #2.
         """
-        return await self._get(f"/messages/{message_id}.json", etag=etag, model=MessageResponse)
+        return await self._get(self._path("/messages/{}.json", message_id), etag=etag, model=MessageResponse)
