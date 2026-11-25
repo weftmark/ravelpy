@@ -35,7 +35,7 @@ server = [
 ]
 docs = [
     "sphinx>=9.0.4",
-    "myst-parser>=3.0.0",
+    "myst-parser>=5.2.0",
     "sphinx-autoapi>=3.9.0",
     "furo>=2024.1.29",
 ]
