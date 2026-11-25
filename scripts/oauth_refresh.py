@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import asyncio
 import os
 import sys
 from pathlib import Path
@@ -60,12 +61,17 @@ if not current.refresh_token:
         "Re-run scripts/oauth_login.py with the 'offline' scope to get one."
     )
 
-oauth = OAuthClient(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
-new_tokens = oauth.refresh(current.refresh_token)
-save_tokens(new_tokens, token_path)
 
-hours = new_tokens.expires_in // 3600
-minutes = (new_tokens.expires_in % 3600) // 60
+async def main() -> None:
+    oauth = OAuthClient(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+    new_tokens = await oauth.refresh(current.refresh_token)
+    save_tokens(new_tokens, token_path)
 
-print(f"Token refreshed. New access token expires in: {hours}h {minutes}m")
-print(f"Tokens saved to {token_path}")
+    hours = new_tokens.expires_in // 3600
+    minutes = (new_tokens.expires_in % 3600) // 60
+
+    print(f"Token refreshed. New access token expires in: {hours}h {minutes}m")
+    print(f"Tokens saved to {token_path}")
+
+
+asyncio.run(main())

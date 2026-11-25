@@ -33,11 +33,14 @@ autoapi/index
 ## Quick example
 
 ```python
+import asyncio
 from ravelpy import RavelryClient
 
-client = RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key")
+async def main():
+    async with RavelryClient(username="read-xxxxxxxxxxxx", api_key="your_api_key") as client:
+        data, etag, raw = await client.patterns.search(query="socks", weight="fingering")
+        for p in raw["patterns"]:
+            print(p["name"])
 
-data, etag, raw = client.patterns.search(query="socks", weight="fingering")
-for p in raw["patterns"]:
-    print(p["name"])
+asyncio.run(main())
 ```

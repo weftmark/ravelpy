@@ -11,6 +11,7 @@ Usage:
 """
 
 import argparse
+import asyncio
 import os
 import sys
 import urllib.parse
@@ -35,11 +36,12 @@ SCOPE_MATRIX: list[tuple[str, list[str]]] = [
 ]
 
 BASE_URL = "https://api.ravelry.com"
+API_HOST = urllib.parse.urlparse(BASE_URL).netloc
 
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Probe one endpoint across all OAuth scopes")
-    p.add_argument("path", help="API path to test (e.g. /patterns/7529294/comments.json)")
+    p.add_argument("path", help="API path to test, starting with '/' (e.g. /patterns/7529294/comments.json)")
     p.add_argument("--env-file", default=str(ROOT / ".env.oauth.personal"))
     p.add_argument("--oauth-clientid", metavar="ID")
     p.add_argument("--oauth-secret",   metavar="SECRET")
@@ -51,8 +53,22 @@ def _parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def _authorize(client: OAuthClient, scopes: list[str], scope_name: str) -> str:
-    url, _ = client.auth_url(scopes)
+def _endpoint_url(path: str) -> str:
+    """Join ``path`` to BASE_URL, refusing anything that could change the host.
+
+    The bearer token is sent to this URL, so a path such as ``@otherhost`` or
+    ``.evil.example`` must not be allowed to redirect it to another server.
+    """
+    if not path.startswith("/"):
+        sys.exit(f"Path must start with '/', got {path!r}")
+    url = f"{BASE_URL}{path}"
+    if urllib.parse.urlparse(url).netloc != API_HOST:
+        sys.exit(f"Path {path!r} does not resolve to {API_HOST}")
+    return url
+
+
+async def _authorize(client: OAuthClient, scopes: list[str], scope_name: str) -> str:
+    url, expected_state = client.auth_url(scopes)
     print(f"\n{'=' * 60}")
     print(f"  Scope: {scope_name!r}  ({' '.join(scopes)})")
     print(f"{'=' * 60}")
@@ -65,16 +81,20 @@ def _authorize(client: OAuthClient, scopes: list[str], scope_name: str) -> str:
         params = urllib.parse.parse_qs(urllib.parse.urlparse(pasted).query)
         if "error" in params:
             sys.exit(f"Authorization error: {params['error'][0]}")
+        if params.get("state", [None])[0] != expected_state:
+            sys.exit("State mismatch in the pasted URL (possible CSRF). Start again.")
         code = params.get("code", [None])[0]
         if not code:
             sys.exit("No 'code' parameter found in the pasted URL.")
     else:
+        print("WARNING: only a code was pasted, so the OAuth state could not be checked.",
+              file=sys.stderr)
         code = pasted
 
-    return client.exchange_code(code).access_token
+    return (await client.exchange_code(code)).access_token
 
 
-def main() -> None:
+async def main() -> None:
     args = _parse_args()
     load_dotenv(Path(args.env_file))
     client_id     = args.oauth_clientid or os.environ.get("RAVELRY_OAUTH_CLIENT_ID", "")
@@ -89,15 +109,16 @@ def main() -> None:
     if args.scopes:
         matrix = [(n, s) for n, s in SCOPE_MATRIX if n in args.scopes]
 
-    url = f"{BASE_URL}{args.path}"
+    url = _endpoint_url(args.path)
     results: list[tuple[str, int]] = []
 
-    for scope_name, scopes in matrix:
-        token = _authorize(oauth, scopes, scope_name)
-        r = httpx.get(url, headers={"Accept": "application/json",
-                                    "Authorization": f"Bearer {token}"}, timeout=15)
-        results.append((scope_name, r.status_code))
-        print(f"  → {r.status_code}")
+    async with httpx.AsyncClient(timeout=15) as http:
+        for scope_name, scopes in matrix:
+            token = await _authorize(oauth, scopes, scope_name)
+            r = await http.get(url, headers={"Accept": "application/json",
+                                             "Authorization": f"Bearer {token}"})
+            results.append((scope_name, r.status_code))
+            print(f"  → {r.status_code}")
 
     print(f"\n\nResults for {args.path}")
     print("-" * 40)
@@ -107,4 +128,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

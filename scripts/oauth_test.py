@@ -10,6 +10,7 @@ Usage:
 Run scripts/oauth_login.py first to obtain a token.
 """
 
+import asyncio
 import sys
 from pathlib import Path
 
@@ -22,59 +23,63 @@ if not TOKEN_PATH.exists():
 from ravelpy import RavelryClient, RavelryAPIError
 from ravelpy.oauth import load_tokens
 
-tokens = load_tokens(TOKEN_PATH)
-client = RavelryClient.from_oauth_token(tokens.access_token)
 
-# (label, expected_to_pass, callable)
-CASES: list[tuple[str, bool, object]] = [
-    # Public endpoints — should always succeed
-    ("patterns.search",        True,  lambda: client.patterns.search(query="hat")),
-    ("yarns.show",             True,  lambda: client.yarns.show(yarn_id=95245)),
-    ("extras.color_families",  True,  lambda: client.extras.color_families()),
-    # Authenticated endpoints — should succeed with a valid OAuth token
-    ("people.me",              True,  lambda: client.people.me()),
-    ("saved_searches.list",    True,  lambda: client.saved_searches.list()),
-    ("forums.sets",            True,  lambda: client.forums.sets()),
-    ("needles.sizes",          True,  lambda: client.needles.sizes()),
-    ("messages.list",          True,  lambda: client.messages.list()),
-]
+async def main() -> None:
+    tokens = load_tokens(TOKEN_PATH)
+    async with RavelryClient.from_oauth_token(tokens.access_token) as client:
+        # (label, expected_to_pass, callable)
+        cases: list[tuple[str, bool, object]] = [
+            # Public endpoints — should always succeed
+            ("patterns.search",        True,  lambda: client.patterns.search(query="hat")),
+            ("yarns.show",             True,  lambda: client.yarns.show(yarn_id=95245)),
+            ("extras.color_families",  True,  lambda: client.extras.color_families()),
+            # Authenticated endpoints — should succeed with a valid OAuth token
+            ("people.me",              True,  lambda: client.people.me()),
+            ("saved_searches.list",    True,  lambda: client.saved_searches.list()),
+            ("forums.sets",            True,  lambda: client.forums.sets()),
+            ("needles.sizes",          True,  lambda: client.needles.sizes()),
+            ("messages.list",          True,  lambda: client.messages.list()),
+        ]
 
-col_label = 28
-col_result = 10
+        col_label = 28
+        col_result = 10
 
-header = f"{'Endpoint':<{col_label}} {'Result':<{col_result}} Detail"
-sep = "-" * 70
-print(header)
-print(sep)
+        header = f"{'Endpoint':<{col_label}} {'Result':<{col_result}} Detail"
+        sep = "-" * 70
+        print(header)
+        print(sep)
 
-pass_count = fail_count = 0
+        pass_count = fail_count = 0
 
-for label, should_pass, call in CASES:
-    try:
-        parsed, etag, raw = call()
-        status = "OK"
-        detail = f"etag={etag}"
-        if should_pass:
-            pass_count += 1
-        else:
-            fail_count += 1
-            status = "UNEXPECTED OK"
-    except RavelryAPIError as e:
-        status = f"HTTP {e.status_code}"
-        detail = e.message[:60] if e.message else ""
-        if should_pass:
-            fail_count += 1
-        else:
-            pass_count += 1
-    except Exception as e:
-        status = "ERROR"
-        detail = str(e)[:60]
-        fail_count += 1
+        for label, should_pass, call in cases:
+            try:
+                parsed, etag, raw = await call()
+                status = "OK"
+                detail = f"etag={etag}"
+                if should_pass:
+                    pass_count += 1
+                else:
+                    fail_count += 1
+                    status = "UNEXPECTED OK"
+            except RavelryAPIError as e:
+                status = f"HTTP {e.status_code}"
+                detail = e.message[:60] if e.message else ""
+                if should_pass:
+                    fail_count += 1
+                else:
+                    pass_count += 1
+            except Exception as e:
+                status = "ERROR"
+                detail = str(e)[:60]
+                fail_count += 1
 
-    print(f"{label:<{col_label}} {status:<{col_result}} {detail}")
+            print(f"{label:<{col_label}} {status:<{col_result}} {detail}")
 
-print(sep)
-print(f"Passed: {pass_count}  Failed: {fail_count}")
-if fail_count:
-    print("\nIf authenticated endpoints return 401, the token may have expired.")
-    print("Run scripts/oauth_refresh.py (or oauth_login.py to re-authorize).")
+        print(sep)
+        print(f"Passed: {pass_count}  Failed: {fail_count}")
+        if fail_count:
+            print("\nIf authenticated endpoints return 401, the token may have expired.")
+            print("Run scripts/oauth_refresh.py (or oauth_login.py to re-authorize).")
+
+
+asyncio.run(main())

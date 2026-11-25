@@ -80,12 +80,18 @@ oauth = OAuthClient(
 # Build an auth URL and redirect the user there
 url, state = oauth.auth_url(scopes=[OAuthScope.OFFLINE])
 
-# After the user grants access, exchange the code for a token
-token = oauth.exchange_code(code="the_code_from_callback")
+# After the user grants access, check that the callback's state matches `state`,
+# then exchange the code for a token (exchange_code and refresh are async)
+token = await oauth.exchange_code(code="the_code_from_callback")
 
 # Build a RavelryClient from the access token
-client = RavelryClient.from_oauth_token(token.access_token)
+async with RavelryClient.from_oauth_token(token.access_token) as client:
+    data, etag, raw = await client.people.me()
 ```
+
+`exchange_code()` and `refresh()` are coroutines and must be awaited inside an
+`async def`. `auth_url()` and `local_flow()` are synchronous; `local_flow()` runs
+its own event loop, so call it outside `asyncio.run(...)`.
 
 See [docs/authentication.md](docs/authentication.md) for the full OAuth scope list, a tested scope matrix, and notes on which endpoints require specific scopes.
 
@@ -138,10 +144,10 @@ async with RavelryClient(username="your_username", api_key="your_personal_key") 
 Every method returns `(model, etag, raw_dict)`. Pass the `etag` back on subsequent calls — the server returns `304 Not Modified` and both `model` and `raw_dict` will be `None`.
 
 ```python
-data, etag, raw = client.patterns.search(query="socks")
+data, etag, raw = await client.patterns.search(query="socks")
 
 # later...
-data, etag, raw = client.patterns.search(query="socks", etag=etag)
+data, etag, raw = await client.patterns.search(query="socks", etag=etag)
 if data is None:
     print("not modified — use cached data")
 ```
