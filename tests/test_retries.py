@@ -195,6 +195,27 @@ class TestRetryAfterParsing:
     def test_garbage_ignored(self):
         assert _retry._retry_after(self._resp("soon")) is None
 
+    @pytest.mark.parametrize("raw", ["²".encode("latin-1"), "²".encode("utf-8"), "①".encode("utf-8")])
+    def test_non_ascii_digits_ignored(self, raw):
+        # str.isdigit() accepts these, but float() rejects them; they must fall
+        # back to normal backoff instead of raising ValueError.
+        resp = httpx.Response(503, headers=[(b"Retry-After", raw)])
+        assert _retry._retry_after(resp) is None
+
+
+@pytest.mark.asyncio
+async def test_non_ascii_retry_after_falls_back_to_backoff(retry_client, mock_api, sleeps):
+    route = mock_api.get("/color_families.json").mock(
+        side_effect=[
+            httpx.Response(503, headers=[(b"Retry-After", "²".encode("latin-1"))]),
+            httpx.Response(200, json={"color_families": []}),
+        ]
+    )
+    _, _, raw = await retry_client.extras.color_families()
+    assert raw == {"color_families": []}
+    assert route.call_count == 2
+    assert len(sleeps) == 1 and sleeps[0] <= _retry.BACKOFF_BASE
+
 
 class TestBackoff:
     def test_capped(self):

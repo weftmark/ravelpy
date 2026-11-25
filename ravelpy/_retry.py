@@ -40,7 +40,8 @@ def _retry_after(response: httpx.Response) -> Optional[float]:
     if value is None:
         return None
     value = value.strip()
-    if value.isdigit():
+    # isascii(): str.isdigit() also accepts characters such as "²" that float() rejects.
+    if value.isascii() and value.isdigit():
         return min(MAX_DELAY, float(value))
     try:
         when = email.utils.parsedate_to_datetime(value)
