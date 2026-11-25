@@ -13,4 +13,4 @@ class Pages(Resource):
 
     async def show(self, page_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single page (``GET /pages/{id}.json``)."""
-        return await self._get(f"/pages/{page_id}.json", etag=etag, model=PageResponse)
+        return await self._get(self._path("/pages/{}.json", page_id), etag=etag, model=PageResponse)

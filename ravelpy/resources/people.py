@@ -27,7 +27,7 @@ class People(Resource):
 
     async def show(self, username: str, etag: Optional[str] = None) -> ApiResult:
         """Return a user's public profile (``GET /people/{username}.json``)."""
-        return await self._get(f"/people/{username}.json", etag=etag, model=UserResponse)
+        return await self._get(self._path("/people/{}.json", username), etag=etag, model=UserResponse)
 
     async def comments(
         self,
@@ -37,4 +37,4 @@ class People(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return comments on a user's profile (``GET /people/{username}/comments/list.json``)."""
-        return await self._get(f"/people/{username}/comments/list.json", {"page": page, "page_size": page_size}, etag=etag, model=CommentsResponse)
+        return await self._get(self._path("/people/{}/comments/list.json", username), {"page": page, "page_size": page_size}, etag=etag, model=CommentsResponse)

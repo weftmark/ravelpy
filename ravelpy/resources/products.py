@@ -22,7 +22,7 @@ class Products(Resource):
         require a valid product ID the user owns (pattern store product).
         See GitHub issue #2.
         """
-        return await self._get(f"/products/{product_id}.json", etag=etag, model=ProductResponse)
+        return await self._get(self._path("/products/{}.json", product_id), etag=etag, model=ProductResponse)
 
     async def attachments(self, product_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a product's attachments (``GET /products/{id}/attachments.json``).
@@ -30,4 +30,4 @@ class Products(Resource):
         TODO: returns 403 for all tested credentials including personal key; may
         require a valid product ID the user owns.  See GitHub issue #2.
         """
-        return await self._get(f"/products/{product_id}/attachments.json", etag=etag, model=ProductAttachmentsResponse)
+        return await self._get(self._path("/products/{}/attachments.json", product_id), etag=etag, model=ProductAttachmentsResponse)

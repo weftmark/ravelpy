@@ -14,4 +14,4 @@ class ProductAttachments(Resource):
 
     async def show(self, attachment_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single product attachment (``GET /product_attachments/{id}.json``)."""
-        return await self._get(f"/product_attachments/{attachment_id}.json", etag=etag, model=ProductAttachmentResponse)
+        return await self._get(self._path("/product_attachments/{}.json", attachment_id), etag=etag, model=ProductAttachmentResponse)

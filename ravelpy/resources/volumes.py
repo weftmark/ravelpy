@@ -13,4 +13,4 @@ class Volumes(Resource):
 
     async def show(self, volume_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single volume (``GET /volumes/{id}.json``)."""
-        return await self._get(f"/volumes/{volume_id}.json", etag=etag, model=VolumeResponse)
+        return await self._get(self._path("/volumes/{}.json", volume_id), etag=etag, model=VolumeResponse)

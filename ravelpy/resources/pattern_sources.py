@@ -15,7 +15,7 @@ class PatternSources(Resource):
 
     async def show(self, source_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single pattern source (``GET /pattern_sources/{id}.json``)."""
-        return await self._get(f"/pattern_sources/{source_id}.json", etag=etag, model=PatternSourceResponse)
+        return await self._get(self._path("/pattern_sources/{}.json", source_id), etag=etag, model=PatternSourceResponse)
 
     async def search(
         self,
@@ -38,4 +38,4 @@ class PatternSources(Resource):
 
         Marked *authenticated* in the official docs but accessible with the read-only key.
         """
-        return await self._get(f"/pattern_sources/{source_id}/patterns.json", {"page": page, "page_size": page_size}, etag=etag, model=PatternSearchResponse)
+        return await self._get(self._path("/pattern_sources/{}/patterns.json", source_id), {"page": page, "page_size": page_size}, etag=etag, model=PatternSearchResponse)

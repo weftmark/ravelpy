@@ -21,7 +21,7 @@ class Library(Resource):
     ) -> ApiResult:
         """Search a user's library (``GET /people/{username}/library/search.json``)."""
         return await self._get(
-            f"/people/{username}/library/search.json",
+            self._path("/people/{}/library/search.json", username),
             {"query": query, "page": page, "page_size": page_size},
             etag=etag,
             model=LibraryResponse,

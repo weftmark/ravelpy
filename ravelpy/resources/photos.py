@@ -17,7 +17,7 @@ class Photos(Resource):
 
     async def sizes(self, photo_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return size variants for a photo (``GET /photos/{id}/sizes.json``)."""
-        return await self._get(f"/photos/{photo_id}/sizes.json", etag=etag)
+        return await self._get(self._path("/photos/{}/sizes.json", photo_id), etag=etag)
 
     async def status(self, etag: Optional[str] = None) -> ApiResult:
         """Return the photo upload service status (``GET /photos/status.json``)."""

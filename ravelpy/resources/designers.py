@@ -19,4 +19,4 @@ class Designers(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return a single designer (``GET /designers/{id}.json``)."""
-        return await self._get(f"/designers/{designer_id}.json", {"include": include}, etag=etag)
+        return await self._get(self._path("/designers/{}.json", designer_id), {"include": include}, etag=etag)

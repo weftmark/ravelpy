@@ -15,4 +15,4 @@ class Packs(Resource):
 
     async def show(self, pack_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single pack (``GET /packs/{id}.json``)."""
-        return await self._get(f"/packs/{pack_id}.json", etag=etag, model=PackResponse)
+        return await self._get(self._path("/packs/{}.json", pack_id), etag=etag, model=PackResponse)

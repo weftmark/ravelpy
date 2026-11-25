@@ -24,11 +24,11 @@ class Stash(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return a user's stash (``GET /people/{username}/stash/list.json``)."""
-        return await self._get(f"/people/{username}/stash/list.json", {"page": page, "page_size": page_size}, etag=etag, model=StashListResponse)
+        return await self._get(self._path("/people/{}/stash/list.json", username), {"page": page, "page_size": page_size}, etag=etag, model=StashListResponse)
 
     async def show(self, username: str, stash_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single stash entry (``GET /people/{username}/stash/{id}.json``)."""
-        return await self._get(f"/people/{username}/stash/{stash_id}.json", etag=etag, model=StashResponse)
+        return await self._get(self._path("/people/{}/stash/{}.json", username, stash_id), etag=etag, model=StashResponse)
 
     async def search(
         self,
@@ -51,7 +51,7 @@ class Stash(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return a user's unified stash (``GET /people/{username}/stash/unified/list.json``)."""
-        return await self._get(f"/people/{username}/stash/unified/list.json", {"page": page, "page_size": page_size}, etag=etag, model=UnifiedStashResponse)
+        return await self._get(self._path("/people/{}/stash/unified/list.json", username), {"page": page, "page_size": page_size}, etag=etag, model=UnifiedStashResponse)
 
     async def create(self, username: str, payload: dict) -> ApiResult:
         """Create a stash entry (``POST /people/{username}/stash/create.json``).
@@ -81,7 +81,7 @@ class Stash(Resource):
             :class:`~ravelpy.exceptions.RavelryAPIError`: On any non-2xx response
             (e.g. 403 when using a read-only key).
         """
-        return await self._post(f"/people/{username}/stash/create.json", payload)
+        return await self._post(self._path("/people/{}/stash/create.json", username), payload)
 
     async def comments(
         self,
@@ -92,4 +92,4 @@ class Stash(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return comments on a stash entry (``GET /people/{username}/stash/{id}/comments.json``)."""
-        return await self._get(f"/people/{username}/stash/{stash_id}/comments.json", {"page": page, "page_size": page_size}, etag=etag, model=CommentsResponse)
+        return await self._get(self._path("/people/{}/stash/{}/comments.json", username, stash_id), {"page": page, "page_size": page_size}, etag=etag, model=CommentsResponse)

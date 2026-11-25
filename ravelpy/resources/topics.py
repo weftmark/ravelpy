@@ -16,7 +16,7 @@ class Topics(Resource):
 
     async def show(self, topic_id: int, etag: Optional[str] = None) -> ApiResult:
         """Return a single topic (``GET /topics/{id}.json``)."""
-        return await self._get(f"/topics/{topic_id}.json", etag=etag, model=TopicResponse)
+        return await self._get(self._path("/topics/{}.json", topic_id), etag=etag, model=TopicResponse)
 
     async def posts(
         self,
@@ -26,4 +26,4 @@ class Topics(Resource):
         etag: Optional[str] = None,
     ) -> ApiResult:
         """Return posts in a topic (``GET /topics/{id}/posts.json``)."""
-        return await self._get(f"/topics/{topic_id}/posts.json", {"page": page, "page_size": page_size}, etag=etag, model=ForumPostsResponse)
+        return await self._get(self._path("/topics/{}/posts.json", topic_id), {"page": page, "page_size": page_size}, etag=etag, model=ForumPostsResponse)

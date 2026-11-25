@@ -13,8 +13,8 @@ class Friends(Resource):
 
     async def list(self, username: str, etag: Optional[str] = None) -> ApiResult:
         """Return a user's friends (``GET /people/{username}/friends/list.json``)."""
-        return await self._get(f"/people/{username}/friends/list.json", etag=etag, model=FriendsResponse)
+        return await self._get(self._path("/people/{}/friends/list.json", username), etag=etag, model=FriendsResponse)
 
     async def activity(self, username: str, etag: Optional[str] = None) -> ApiResult:
         """Return recent activity from a user's friends (``GET /people/{username}/friends/activity.json``)."""
-        return await self._get(f"/people/{username}/friends/activity.json", etag=etag, model=FriendActivityResponse)
+        return await self._get(self._path("/people/{}/friends/activity.json", username), etag=etag, model=FriendActivityResponse)
