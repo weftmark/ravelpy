@@ -221,6 +221,10 @@ uvicorn examples.server:app --reload
 
 Open `http://localhost:8000/docs`.
 
+> **Local demo only.** The server has no authentication and sends every request with the
+> credentials in your `.env`, so anyone who can reach it can read your private data and write
+> to your stash. Keep uvicorn's default `127.0.0.1` bind and don't expose it to a network.
+
 ---
 
 ## Links

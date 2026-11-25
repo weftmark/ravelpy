@@ -1,11 +1,16 @@
 """
 Ravelry API proxy server with interactive Swagger UI.
 
-Run:
-    uvicorn server:app --reload
+Run (from the repository root):
+    uvicorn examples.server:app --reload
 
 Swagger UI: http://localhost:8000/docs
 ReDoc:       http://localhost:8000/redoc
+
+Local demo only. The server has no authentication and makes every request with
+the Ravelry credentials from your environment, including your private messages,
+deliveries and stash writes. Keep it on the default 127.0.0.1 bind; never start
+it with ``--host 0.0.0.0`` or expose it to a network.
 """
 
 import os
@@ -14,7 +19,6 @@ from typing import Annotated, Optional
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Path, Query
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from ravelpy import RavelryAPIError, RavelryClient
@@ -144,12 +148,9 @@ app = FastAPI(
     openapi_tags=_TAGS,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
+# No CORS middleware on purpose: the bundled Swagger UI and ReDoc pages are
+# same-origin, and allowing other origins would let any web page you visit read
+# your account data through this proxy.
 
 
 @lru_cache(maxsize=1)

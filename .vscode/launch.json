@@ -9,7 +9,7 @@
       "args": [
         "examples.server:app",
         "--reload",
-        "--host", "0.0.0.0"
+        "--host", "127.0.0.1"
       ],
       "envFile": "${workspaceFolder}/.env",
       "jinja": true,
