@@ -1,0 +1,5 @@
+# Build/upload tools for the release job (publish.yml) and CI's build check.
+# Pinned so a compromised or broken upstream release can't reach the PyPI
+# publish job unreviewed; Dependabot (pip, /.github/requirements) bumps these.
+build==1.6.1
+twine==7.0.0
