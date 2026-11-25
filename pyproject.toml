@@ -37,7 +37,7 @@ docs = [
     "sphinx>=9.0.4",
     "myst-parser>=5.2.0",
     "sphinx-autoapi>=3.9.0",
-    "furo>=2024.1.29",
+    "furo>=2025.12.19",
 ]
 dev = [
     "pytest>=9.2.0",
