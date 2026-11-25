@@ -1,6 +1,8 @@
 """Tests for :mod:`ravelpy.oauth` — OAuthClient and token persistence helpers."""
 
 import json
+import os
+import stat
 import urllib.parse
 
 import pytest
@@ -209,6 +211,31 @@ class TestTokenPersistence:
     def test_load_raises_if_file_missing(self, tmp_path):
         with pytest.raises(FileNotFoundError):
             load_tokens(tmp_path / "nonexistent.json")
+
+    @pytest.mark.skipif(os.name == "nt", reason="POSIX file modes only")
+    def test_new_file_is_owner_only(self, tmp_path):
+        path = tmp_path / ".oauth_tokens.json"
+        old_umask = os.umask(0o022)
+        try:
+            save_tokens(TokenResponse(SAMPLE_TOKEN_RESPONSE), path)
+        finally:
+            os.umask(old_umask)
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
+
+    @pytest.mark.skipif(os.name == "nt", reason="POSIX file modes only")
+    def test_existing_world_readable_file_is_tightened(self, tmp_path):
+        path = tmp_path / ".oauth_tokens.json"
+        path.write_text('{"access_token": "old_access_token", "extra": "' + "x" * 200 + '"}')
+        path.chmod(0o644)
+        save_tokens(TokenResponse(SAMPLE_TOKEN_RESPONSE), path)
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
+        # Shorter content fully replaces the old file (truncated, no leftovers)
+        assert json.loads(path.read_text()) == SAMPLE_TOKEN_RESPONSE
+
+    def test_saved_format_unchanged(self, tmp_path):
+        path = tmp_path / ".oauth_tokens.json"
+        save_tokens(TokenResponse(SAMPLE_TOKEN_RESPONSE), path)
+        assert path.read_text() == json.dumps(SAMPLE_TOKEN_RESPONSE, indent=2)
 
 
 # ── RavelryClient.from_oauth_token ───────────────────────────────────────────

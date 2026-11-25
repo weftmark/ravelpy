@@ -97,6 +97,12 @@ token = load_tokens()
 client = RavelryClient.from_oauth_token(token.access_token)
 ```
 
+The token file contains your bearer access token and refresh token.
+`save_tokens` creates it with mode `0600` (readable and writable by the owner
+only) and tightens an existing file to `0600` when overwriting it. On Windows
+these permission bits are not enforced, so keep the file in a directory only
+you can read.
+
 ### Refreshing tokens
 
 ```python
