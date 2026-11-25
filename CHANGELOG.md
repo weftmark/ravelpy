@@ -7,6 +7,39 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- `timeout=` keyword argument on `OAuthClient.local_flow(...)` (default 300 seconds;
+  `None` waits indefinitely). Raises `TimeoutError` when no valid callback arrives.
+  ([#45](https://github.com/weftmark/ravelpy/issues/45))
+
+### Changed
+
+- `OAuthClient.local_flow` ignores callbacks without the expected `state`
+  (answering `400`) and keeps waiting, instead of ending the flow with
+  `RuntimeError("state_mismatch")`. Only a callback with the matching `state` can
+  end it. ([#45](https://github.com/weftmark/ravelpy/issues/45))
+
+### Fixed
+
+- Path arguments (usernames, IDs) are percent-encoded, so values containing `/`,
+  `?`, `#` or `..` can no longer point a request at a different API endpoint.
+  ([#43](https://github.com/weftmark/ravelpy/issues/43))
+- `save_tokens` writes the token file with mode `0600`, tightening an existing
+  file too. ([#44](https://github.com/weftmark/ravelpy/issues/44))
+- A `Retry-After` header with non-ASCII digit characters no longer raises a bare
+  `ValueError` when retries are enabled. ([#46](https://github.com/weftmark/ravelpy/issues/46))
+- Documentation examples await the async OAuth and resource methods.
+  ([#49](https://github.com/weftmark/ravelpy/issues/49))
+
+### Security
+
+- Release workflow: actions pinned to commit SHAs, build tools pinned, least-privilege
+  token, and PyPI publishing now requires maintainer approval.
+  ([#48](https://github.com/weftmark/ravelpy/issues/48))
+- The example server binds to localhost and no longer allows cross-origin requests.
+  ([#47](https://github.com/weftmark/ravelpy/issues/47))
+
 ## [0.4.0] - 2026-10-17
 
 ### Added
