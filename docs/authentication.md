@@ -84,6 +84,24 @@ client = RavelryClient.from_oauth_token(token.access_token)
 data, etag, raw = client.people.me()
 ```
 
+### Local browser flow
+
+For scripts and local development, `local_flow()` opens the browser, runs a
+temporary callback server on `localhost` (the port and path from
+`redirect_uri`, default `http://localhost:8080/callback`), and exchanges the
+code for you:
+
+```python
+token = oauth.local_flow([OAuthScope.OFFLINE])               # waits up to 5 minutes
+token = oauth.local_flow([OAuthScope.OFFLINE], timeout=None) # wait indefinitely
+```
+
+Only a callback carrying the `state` token generated for this flow ends it.
+Requests with a missing or wrong `state`, including `error` callbacks, get a
+`400` response and are ignored, so another local process or web page cannot
+abort the login. A matching callback with `error` raises `RuntimeError`; no
+valid callback within `timeout` seconds raises `TimeoutError`.
+
 ### Persisting tokens
 
 ```python

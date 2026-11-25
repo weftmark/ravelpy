@@ -31,6 +31,7 @@ import http.server
 import json
 import os
 import secrets
+import time
 import urllib.parse
 import webbrowser
 from enum import Enum
@@ -44,6 +45,7 @@ AUTH_URL = "https://www.ravelry.com/oauth2/auth"
 TOKEN_URL = "https://www.ravelry.com/oauth2/token"
 DEFAULT_PORT = 8080
 DEFAULT_REDIRECT_URI = f"http://localhost:{DEFAULT_PORT}/callback"
+DEFAULT_LOCAL_FLOW_TIMEOUT = 300.0
 
 
 class OAuthScope(str, Enum):
@@ -236,7 +238,11 @@ class OAuthClient:
 
     # ── Local browser flow (sync — inherently blocking) ─────────────────────
 
-    def local_flow(self, scopes: list[str]) -> TokenResponse:
+    def local_flow(
+        self,
+        scopes: list[str],
+        timeout: Optional[float] = DEFAULT_LOCAL_FLOW_TIMEOUT,
+    ) -> TokenResponse:
         """Run the full authorization code flow using a local callback server.
 
         Opens the user's browser to the Ravelry authorization page, then starts a
@@ -246,15 +252,25 @@ class OAuthClient:
         The redirect URI registered in the Ravelry developer portal must match
         ``self.redirect_uri`` exactly (default: ``http://localhost:8080/callback``).
 
+        Only a callback carrying the ``state`` token generated for this flow can
+        end it.  Requests to the callback path with a missing or wrong ``state``
+        (including ``error`` callbacks) get a ``400`` response and are otherwise
+        ignored, so another local process or web page cannot abort the login.
+        Requests to other paths get a ``404``.
+
         Args:
-            scopes: OAuth scopes to request (include ``"offline"`` for a refresh token).
+            scopes:  OAuth scopes to request (include ``"offline"`` for a refresh token).
+            timeout: Seconds to wait for the callback before giving up.  Defaults
+                     to 300 (5 minutes); ``None`` waits indefinitely.
 
         Returns:
             :class:`TokenResponse` with the access token (and refresh token if
             ``"offline"`` was in ``scopes``).
 
         Raises:
-            RuntimeError: If the user denies access or the state token mismatches.
+            RuntimeError: If a callback with the correct ``state`` reports an
+                ``error`` (e.g. the user denied access) or carries no ``code``.
+            TimeoutError: If no valid callback arrives within ``timeout`` seconds.
         """
         url, expected_state = self.auth_url(scopes)
         parsed = urllib.parse.urlparse(self.redirect_uri)
@@ -264,6 +280,9 @@ class OAuthClient:
         captured: dict = {}
 
         class _CallbackHandler(http.server.BaseHTTPRequestHandler):
+            # Socket timeout so a stalled client cannot block the wait loop.
+            timeout = 5
+
             def do_GET(self) -> None:
                 req = urllib.parse.urlparse(self.path)
                 if req.path != path:
@@ -272,12 +291,19 @@ class OAuthClient:
 
                 params = urllib.parse.parse_qs(req.query, keep_blank_values=True)
 
+                # Check state first: a request without the expected state must
+                # not end the flow, whatever else it carries.
+                state = params.get("state", [""])[0]
+                if not secrets.compare_digest(state.encode(), expected_state.encode()):
+                    self._reply(400, b"State mismatch \xe2\x80\x94 possible CSRF. Close this window.")
+                    return
+
                 if "error" in params:
                     captured["error"] = params["error"][0]
                     self._reply(400, f"Authorization error: {params['error'][0]}. You can close this window.".encode())
-                elif params.get("state", [None])[0] != expected_state:
-                    captured["error"] = "state_mismatch"
-                    self._reply(400, b"State mismatch \xe2\x80\x94 possible CSRF. Close this window.")
+                elif not params.get("code", [""])[0]:
+                    captured["error"] = "missing_code"
+                    self._reply(400, b"Authorization response is missing a code. Close this window.")
                 else:
                     captured["code"] = params["code"][0]
                     self._reply(200, b"Authorization successful. You can close this window.")
@@ -302,9 +328,19 @@ class OAuthClient:
         print(f"If the browser does not open, visit:\n  {url}")
         webbrowser.open(url)
 
-        while not server._done:  # type: ignore[attr-defined]
-            server.handle_request()
-        server.server_close()
+        deadline = None if timeout is None else time.monotonic() + timeout
+        try:
+            while not server._done:  # type: ignore[attr-defined]
+                if deadline is not None:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError(
+                            f"OAuth authorization timed out: no valid callback within {timeout} seconds"
+                        )
+                    server.timeout = remaining
+                server.handle_request()
+        finally:
+            server.server_close()
 
         if "error" in captured:
             raise RuntimeError(f"OAuth authorization failed: {captured['error']}")
