@@ -1,5 +1,7 @@
-# Dependabot keeps two things fresh: the GitHub Actions used by CI, and the
-# floors of ravelpy's dev/docs tooling in pyproject.toml.
+# Dependabot keeps three things fresh: the GitHub Actions used by CI (pinned to
+# commit SHAs; Dependabot updates the SHA and its version comment), the floors of
+# ravelpy's dev/docs tooling in pyproject.toml, and the exact pins of the release
+# tools in .github/requirements/release.txt.
 #
 # Runtime dependencies (httpx, pydantic) and the user-facing `server` extra
 # (fastapi, uvicorn, python-dotenv) are ignored on purpose. ravelpy is a library:
@@ -64,3 +66,24 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+
+  # Exact pins for the release job's build/upload tools.
+  - package-ecosystem: pip
+    directory: /.github/requirements
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: America/Chicago
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - python
+    assignees:
+      - gx1400
+    groups:
+      release-tools:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    commit-message:
+      prefix: ci
