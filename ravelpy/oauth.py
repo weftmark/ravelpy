@@ -29,6 +29,7 @@ Typical local-testing workflow::
 
 import http.server
 import json
+import os
 import secrets
 import urllib.parse
 import webbrowser
@@ -318,11 +319,22 @@ class OAuthClient:
 def save_tokens(tokens: TokenResponse, path: Path) -> None:
     """Write a :class:`TokenResponse` to a JSON file.
 
+    The file holds the bearer access token and the refresh token, so it is
+    created with mode ``0600`` (owner read/write only).  An existing file at
+    ``path`` is tightened to ``0600`` before the new tokens are written.  On
+    Windows, POSIX permission bits are not enforced; protect the file with
+    directory ACLs instead.
+
     Args:
         tokens: Token response to persist.
         path:   Destination file path (e.g. ``Path(".oauth_tokens.json")``).
     """
-    path.write_text(json.dumps(tokens.to_dict(), indent=2))
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f:
+        # O_CREAT's mode only applies to new files; tighten a pre-existing one
+        # before any token data is written to it.
+        os.chmod(path, 0o600)
+        f.write(json.dumps(tokens.to_dict(), indent=2))
 
 
 def load_tokens(path: Path) -> TokenResponse:
