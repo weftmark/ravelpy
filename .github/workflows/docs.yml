@@ -15,6 +15,8 @@ concurrency:
 
 jobs:
   build:
+    # Named so the required check is distinct from CI's "build" job.
+    name: docs
     runs-on: ubuntu-latest
 
     steps:

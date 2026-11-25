@@ -1,0 +1,35 @@
+name: Dependabot auto-merge
+
+# Turns on GitHub auto-merge for Dependabot's patch/minor PRs. The PR still
+# merges only after the checks required by the main-protect ruleset pass; majors
+# are left for a human.
+#
+# pull_request_target runs this file from main with a write-scoped token. It is
+# safe here because no step checks out or runs code from the PR: it reads
+# Dependabot's metadata (fetch-metadata also verifies the commits are signed by
+# Dependabot) and calls the GitHub API.
+on: pull_request_target
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'weftmark/ravelpy'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      - name: Enable auto-merge (patch/minor only)
+        if: >-
+          steps.meta.outputs.update-type != 'version-update:semver-major' &&
+          (steps.meta.outputs.package-ecosystem == 'github_actions' ||
+           steps.meta.outputs.package-ecosystem == 'pip')
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

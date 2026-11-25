@@ -1,8 +1,15 @@
-# Only GitHub Actions are tracked here. ravelpy is a library whose runtime and
-# dev dependencies are declared as lower bounds (">="), so there are no pins
-# for Dependabot to bump; compatibility with new upstream releases is instead
-# covered by the weekly scheduled CI run, and the floors by the
-# test-minimum-deps job.
+# Dependabot keeps two things fresh: the GitHub Actions used by CI, and the
+# floors of ravelpy's dev/docs tooling in pyproject.toml.
+#
+# Runtime dependencies (httpx, pydantic) and the user-facing `server` extra
+# (fastapi, uvicorn, python-dotenv) are ignored on purpose. ravelpy is a library:
+# its lower bounds are a promise to consumers, so they move only when ravelpy
+# needs a newer API, not every time upstream releases. Compatibility with new
+# upstream releases is covered by the weekly scheduled CI run, and the floors by
+# the test-minimum-deps job.
+#
+# Patch and minor updates are merged automatically once the required CI checks
+# pass (.github/workflows/dependabot-auto-merge.yml). Majors wait for a human.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -10,8 +17,50 @@ updates:
     schedule:
       interval: weekly
       day: monday
+      time: "04:00"
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github_actions
+    assignees:
+      - gx1400
     groups:
       actions:
         patterns: ["*"]
     commit-message:
       prefix: ci
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+    # Every dependency is declared as ">=X". "increase" raises X to the new
+    # release; the default strategy never opens a PR because new releases
+    # already satisfy ">=".
+    versioning-strategy: increase
+    labels:
+      - dependencies
+      - python
+    assignees:
+      - gx1400
+    ignore:
+      # Runtime dependencies: see the note at the top of this file.
+      - dependency-name: httpx
+      - dependency-name: pydantic
+      # Also declared in the published `server` extra.
+      - dependency-name: fastapi
+      - dependency-name: uvicorn
+      - dependency-name: python-dotenv
+    groups:
+      # Majors are left out of the group so each gets its own PR and review.
+      dev-tooling:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore
+      include: scope
