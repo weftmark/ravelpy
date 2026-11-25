@@ -116,14 +116,80 @@ def test_authorization_error_raises(oauth):
     assert not route.called
 
 
-def test_state_mismatch_raises(oauth):
+@pytest.mark.parametrize(
+    "bad_query",
+    [
+        {"code": "attacker_code", "state": "forged"},
+        {"code": "attacker_code"},
+        {"code": "attacker_code", "state": ""},
+        {"error": "access_denied", "state": "forged"},
+        {"error": "access_denied"},
+    ],
+    ids=["wrong-state", "missing-state", "empty-state", "error-wrong-state", "error-missing-state"],
+)
+def test_bad_state_is_rejected_and_keeps_waiting(oauth, bad_query):
+    """A callback without the expected state gets a 400 but does not end the flow (#45)."""
     statuses: list = []
-    browser = _fake_browser(oauth, lambda s: [("/callback", {"code": "c", "state": "forged"})], statuses)
+    browser = _fake_browser(
+        oauth,
+        lambda s: [("/callback", bad_query), ("/callback", {"code": "the_code", "state": s})],
+        statuses,
+    )
+    with patch("ravelpy.oauth.webbrowser.open", side_effect=browser), respx.mock() as mock:
+        route = mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
+        result = oauth.local_flow(["offline"])
+
+    assert result.access_token == "local_access_token"
+    _wait(browser)
+    assert statuses == [400, 200]
+    assert route.call_count == 1
+    body = dict(urllib.parse.parse_qsl(route.calls.last.request.content.decode()))
+    assert body["code"] == "the_code"
+
+
+def test_matching_state_without_code_raises(oauth):
+    statuses: list = []
+    browser = _fake_browser(oauth, lambda s: [("/callback", {"state": s})], statuses)
     with patch("ravelpy.oauth.webbrowser.open", side_effect=browser), respx.mock(assert_all_called=False) as mock:
         route = mock.post(TOKEN_URL)
-        with pytest.raises(RuntimeError, match="state_mismatch"):
+        with pytest.raises(RuntimeError, match="missing_code"):
             oauth.local_flow(["offline"])
 
     _wait(browser)
     assert statuses == [400]
     assert not route.called
+
+
+def test_timeout_raises_when_no_callback_arrives(oauth):
+    browser = _fake_browser(oauth, lambda s: [], [])
+    with patch("ravelpy.oauth.webbrowser.open", side_effect=browser), respx.mock(assert_all_called=False) as mock:
+        route = mock.post(TOKEN_URL)
+        with pytest.raises(TimeoutError, match="0.3 seconds"):
+            oauth.local_flow(["offline"], timeout=0.3)
+
+    assert not route.called
+
+
+def test_timeout_not_reset_by_bad_state_requests(oauth):
+    statuses: list = []
+    browser = _fake_browser(oauth, lambda s: [("/callback", {"code": "c", "state": "forged"})], statuses)
+    with patch("ravelpy.oauth.webbrowser.open", side_effect=browser), respx.mock(assert_all_called=False) as mock:
+        route = mock.post(TOKEN_URL)
+        with pytest.raises(TimeoutError):
+            oauth.local_flow(["offline"], timeout=0.5)
+
+    _wait(browser)
+    assert statuses == [400]
+    assert not route.called
+
+
+def test_timeout_none_waits_for_callback(oauth):
+    statuses: list = []
+    browser = _fake_browser(oauth, lambda s: [("/callback", {"code": "the_code", "state": s})], statuses)
+    with patch("ravelpy.oauth.webbrowser.open", side_effect=browser), respx.mock() as mock:
+        mock.post(TOKEN_URL).respond(200, json=SAMPLE_TOKEN_RESPONSE)
+        result = oauth.local_flow(["offline"], timeout=None)
+
+    assert result.access_token == "local_access_token"
+    _wait(browser)
+    assert statuses == [200]
